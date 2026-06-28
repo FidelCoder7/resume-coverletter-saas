@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
 app = FastAPI(
-    title="Resume Coverletter-SaaS API",
-    description="Production-ready AI Resume & Cover Letter SaaS",
-    version="1.0.0",
-) 
+    title=settings.app_name,
+    version=settings.app_version,
+)
 
 
-@app.get("/", tags=["Health"])
-def root():
-    return {"status": "ok", "message":"Welcome to AI Resume & Coverletter SaaS API" }
+@app.get("/", tags=["Root"])
+async def root() -> dict[str, str]:
+    return {"message": f"Welcome to {settings.app_name}"}
