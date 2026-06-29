@@ -1,6 +1,10 @@
 from sqlalchemy.orm import DeclarativeBase
 
-from app.database.mixins import TimestampMixin, UUIDPrimaryKeyMixin
+from app.database.metadata import metadata
+from app.database.mixins import (
+    TimestampMixin,
+    UUIDPrimaryKeyMixin,
+)
 
 
 class Base(
@@ -8,4 +12,4 @@ class Base(
     UUIDPrimaryKeyMixin,
     TimestampMixin,
 ):
-    """Base class for all ORM models."""
+    metadata = metadata
