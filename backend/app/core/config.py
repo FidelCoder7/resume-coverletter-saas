@@ -2,13 +2,15 @@ from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.common.constants import Environment
+
 
 class Settings(BaseSettings):
     """Application configuration."""
 
     app_name: str
     app_version: str
-    app_env: str
+    app_env: Environment
 
     database_url: str
 
