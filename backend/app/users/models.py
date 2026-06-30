@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Enum, String
+from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.common.constants import (
@@ -9,6 +9,11 @@ from app.common.constants import (
     UserRole,
 )
 from app.database.base import Base
+from app.database.enums import (
+    account_status_enum,
+    subscription_plan_enum,
+    user_role_enum,
+)
 
 
 class User(Base):
@@ -32,31 +37,19 @@ class User(Base):
     )
 
     role: Mapped[UserRole] = mapped_column(
-        Enum(
-            UserRole,
-            name="user_role",
-            create_constraint=True,
-        ),
+        user_role_enum,
         default=UserRole.USER,
         nullable=False,
     )
 
     status: Mapped[AccountStatus] = mapped_column(
-        Enum(
-            AccountStatus,
-            name="account_status",
-            create_constraint=True,
-        ),
+        account_status_enum,
         default=AccountStatus.PENDING,
         nullable=False,
     )
 
     subscription_plan: Mapped[SubscriptionPlan] = mapped_column(
-        Enum(
-            SubscriptionPlan,
-            name="subscription_plan",
-            create_constraint=True,
-        ),
+        subscription_plan_enum,
         default=SubscriptionPlan.FREE,
         nullable=False,
     )
@@ -67,6 +60,12 @@ class User(Base):
         nullable=False,
     )
 
-    last_login_at: Mapped[datetime | None]
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
-    deleted_at: Mapped[datetime | None]
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
