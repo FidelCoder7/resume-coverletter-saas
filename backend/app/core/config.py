@@ -8,19 +8,19 @@ from app.common.constants import Environment
 class Settings(BaseSettings):
     """Application configuration."""
 
-    app_name: str
-    app_version: str
-    app_env: Environment
+    APP_NAME: str
+    APP_VERSION: str
+    APP_ENV: Environment
 
-    database_url: str
+    DATABASE_URL: str
 
-    secret_key: str
+    SECRET_KEY: str
 
-    algorithm: str
+    ALGORITHM: str
 
-    access_token_expire_minutes: int
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
-    refresh_token_expire_days: int
+    REFRESH_TOKEN_EXPIRE_DAYS: int
 
     model_config = SettingsConfigDict(
         env_file=".env",
