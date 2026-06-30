@@ -19,11 +19,15 @@ from app.database.enums import (
 class User(Base):
     __tablename__ = "users"
 
+    # ------------------------------------------------------------------
+    # Identity
+    # ------------------------------------------------------------------
+
     email: Mapped[str] = mapped_column(
         String(255),
         unique=True,
-        nullable=False,
         index=True,
+        nullable=False,
     )
 
     full_name: Mapped[str] = mapped_column(
@@ -31,26 +35,12 @@ class User(Base):
         nullable=False,
     )
 
+    # ------------------------------------------------------------------
+    # Authentication
+    # ------------------------------------------------------------------
+
     password_hash: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
-    )
-
-    role: Mapped[UserRole] = mapped_column(
-        user_role_enum,
-        default=UserRole.USER,
-        nullable=False,
-    )
-
-    status: Mapped[AccountStatus] = mapped_column(
-        account_status_enum,
-        default=AccountStatus.PENDING,
-        nullable=False,
-    )
-
-    subscription_plan: Mapped[SubscriptionPlan] = mapped_column(
-        subscription_plan_enum,
-        default=SubscriptionPlan.FREE,
         nullable=False,
     )
 
@@ -59,6 +49,40 @@ class User(Base):
         default=False,
         nullable=False,
     )
+
+    # ------------------------------------------------------------------
+    # Authorization
+    # ------------------------------------------------------------------
+
+    role: Mapped[UserRole] = mapped_column(
+        user_role_enum,
+        default=UserRole.USER,
+        nullable=False,
+    )
+
+    # ------------------------------------------------------------------
+    # Subscription
+    # ------------------------------------------------------------------
+
+    subscription_plan: Mapped[SubscriptionPlan] = mapped_column(
+        subscription_plan_enum,
+        default=SubscriptionPlan.FREE,
+        nullable=False,
+    )
+
+    # ------------------------------------------------------------------
+    # Account
+    # ------------------------------------------------------------------
+
+    status: Mapped[AccountStatus] = mapped_column(
+        account_status_enum,
+        default=AccountStatus.PENDING,
+        nullable=False,
+    )
+
+    # ------------------------------------------------------------------
+    # Audit
+    # ------------------------------------------------------------------
 
     last_login_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),

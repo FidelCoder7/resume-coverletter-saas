@@ -12,7 +12,7 @@ from app.users.models import User
 # from app.users.models import User
 # from app.resumes.models import Resume
 
-__all__ = [
+__all__ = (
     "Base",
     "User",
-]
+)
