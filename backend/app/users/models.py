@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, DateTime, String, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.common.constants import (
@@ -47,6 +47,7 @@ class User(Base):
     is_email_verified: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
+        server_default=false(),
         nullable=False,
     )
 
