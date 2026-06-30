@@ -9,8 +9,8 @@ from app.core.logging import setup_logging
 setup_logging()
 
 app = FastAPI(
-    title=settings.app_name,
-    version=settings.app_version,
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
     lifespan=lifespan,
 )
 
