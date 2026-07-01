@@ -24,4 +24,4 @@ app.include_router(auth_router)
 
 @app.get("/", tags=["Root"])
 async def root() -> dict[str, str]:
-    return {"message": f"Welcome to {settings.app_name}"}
+    return {"message": f"Welcome to {settings.APP_NAME}"}

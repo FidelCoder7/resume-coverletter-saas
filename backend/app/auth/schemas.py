@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -29,5 +30,17 @@ class UserResponse(BaseModel):
 
 class TokenPayload(BaseModel):
     sub: str
-    exp: int
+    iat: datetime
+    exp: datetime
     type: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse

@@ -1,11 +1,18 @@
-"""Authentication exceptions."""
+class AuthenticationError(Exception):
+    """Base exception for authentication errors."""
 
-from fastapi import HTTPException, status
+
+class InvalidCredentials(AuthenticationError):
+    """Raised when email or password is incorrect."""
 
 
-class EmailAlreadyExistsException(HTTPException):
-    def __init__(self):
-        super().__init__(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email is already registered.",
-        )
+class InvalidToken(AuthenticationError):
+    """Raised when a JWT is invalid or expired."""
+
+
+class AccountInactive(AuthenticationError):
+    """Raised when an account is not active."""
+
+
+class EmailAlreadyRegistered(AuthenticationError):
+    """Raised when attempting to register an existing email."""
