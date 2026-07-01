@@ -37,19 +37,46 @@ def create_access_token(subject: str) -> str:
     """
     Create a signed JWT access token.
     """
-    
+
+    now = datetime.now(UTC)
 
     payload = {
         "sub": subject,
         "type": "access",
-        "iat": datetime.now(UTC),
-        "exp": datetime.now(UTC)
-        + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+        "iat": now,
+        "exp": now
+        + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        ),
     }
 
     return jwt.encode(
         payload,
         settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+
+def create_refresh_token(subject: str) -> str:
+    """
+    Create a signed refresh token.
+    """
+
+    now = datetime.now(UTC)
+
+    payload = {
+        "sub": subject,
+        "type": "refresh",
+        "iat": now,
+        "exp": now
+        + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS,
+        ),
+    }
+
+    return jwt.encode(
+        payload,
+        settings.REFRESH_SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
 
@@ -66,7 +93,35 @@ def decode_access_token(token: str) -> TokenPayload:
             algorithms=[settings.ALGORITHM],
         )
 
-        return TokenPayload.model_validate(payload)
+        token_payload = TokenPayload.model_validate(payload)
+
+        if token_payload.type != "access":
+            raise InvalidToken("Invalid token type.")
+
+        return token_payload
 
     except JWTInvalidTokenError as exc:
         raise InvalidToken("Invalid or expired token.") from exc
+
+
+def decode_refresh_token(token: str) -> TokenPayload:
+    """
+    Decode and validate a refresh token.
+    """
+
+    try:
+        payload = jwt.decode(
+            token,
+            settings.REFRESH_SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+
+        token_payload = TokenPayload.model_validate(payload)
+
+        if token_payload.type != "refresh":
+            raise InvalidToken("Invalid token type.")
+
+        return token_payload
+
+    except JWTInvalidTokenError as exc:
+        raise InvalidToken("Invalid or expired refresh token.") from exc

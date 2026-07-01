@@ -37,7 +37,16 @@ def get_current_user(
 
     repository = UserRepository(db)
 
-    user = repository.get_by_id(UUID(payload.sub))
+    try:
+        user_id = UUID(payload.sub)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+
+    user = repository.get_by_id(user_id)
 
     if user is None:
         raise HTTPException(

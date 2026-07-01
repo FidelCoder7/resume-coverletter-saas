@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String, false
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.common.constants import (
     AccountStatus,
@@ -14,6 +14,11 @@ from app.database.enums import (
     subscription_plan_enum,
     user_role_enum,
 )
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.refresh_tokens.models import RefreshToken
 
 
 class User(Base):
@@ -77,7 +82,7 @@ class User(Base):
 
     status: Mapped[AccountStatus] = mapped_column(
         account_status_enum,
-        default=AccountStatus.PENDING,
+        default=AccountStatus.ACTIVE,
         nullable=False,
     )
 
@@ -93,4 +98,9 @@ class User(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

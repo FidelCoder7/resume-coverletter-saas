@@ -11,8 +11,11 @@ from app.auth.exceptions import (
     AccountInactive,
     EmailAlreadyRegistered,
     InvalidCredentials,
+    InvalidToken,
 )
 from app.auth.schemas import (
+    AccessTokenResponse,
+    RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
     UserResponse,
@@ -69,7 +72,7 @@ def login(
     service = AuthService(repository)
 
     try:
-        token, user = service.login(
+        access_token, refresh_token, user = service.login(
             email=form_data.username,
             password=form_data.password,
         )
@@ -87,8 +90,42 @@ def login(
         ) from exc
 
     return TokenResponse(
-        access_token=token,
+        access_token=access_token,
+        refresh_token=refresh_token,
         user=UserResponse.model_validate(user),
+    )
+
+
+@router.post(
+    "/refresh",
+    response_model=AccessTokenResponse,
+)
+def refresh(
+    request: RefreshTokenRequest,
+    db: Session = Depends(get_db),
+):
+    repository = UserRepository(db)
+    service = AuthService(repository)
+
+    try:
+        access_token = service.refresh_access_token(
+            request.refresh_token,
+        )
+
+    except InvalidToken as exc:
+        raise HTTPException(
+            status_code=401,
+            detail=str(exc),
+        ) from exc
+
+    except AccountInactive as exc:
+        raise HTTPException(
+            status_code=403,
+            detail=str(exc),
+        ) from exc
+
+    return AccessTokenResponse(
+        access_token=access_token,
     )
 
 
