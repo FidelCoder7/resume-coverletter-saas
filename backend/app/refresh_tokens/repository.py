@@ -37,11 +37,8 @@ class RefreshTokenRepository:
         Find a refresh token by its SHA-256 hash.
         """
 
-        statement = (
-            select(RefreshToken)
-            .where(
-                RefreshToken.token_hash == token_hash,
-            )
+        statement = select(RefreshToken).where(
+            RefreshToken.token_hash == token_hash,
         )
 
         return self.db.scalar(statement)
@@ -54,12 +51,9 @@ class RefreshTokenRepository:
         Return a refresh token only if it is active.
         """
 
-        statement = (
-            select(RefreshToken)
-            .where(
-                RefreshToken.token_hash == token_hash,
-                RefreshToken.revoked_at.is_(None),
-            )
+        statement = select(RefreshToken).where(
+            RefreshToken.token_hash == token_hash,
+            RefreshToken.revoked_at.is_(None),
         )
 
         return self.db.scalar(statement)
@@ -72,16 +66,11 @@ class RefreshTokenRepository:
         Return all refresh tokens for a user.
         """
 
-        statement = (
-            select(RefreshToken)
-            .where(
-                RefreshToken.user_id == user_id,
-            )
+        statement = select(RefreshToken).where(
+            RefreshToken.user_id == user_id,
         )
 
-        return list(
-            self.db.scalars(statement)
-        )
+        return list(self.db.scalars(statement))
 
     def revoke(
         self,

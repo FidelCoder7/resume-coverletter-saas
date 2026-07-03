@@ -7,7 +7,6 @@ all SQLAlchemy metadata.
 
 from app.database.base import Base
 from app.refresh_tokens.models import RefreshToken
-from app.refresh_tokens.models import RefreshToken
 from app.users.models import User
 
 # Future imports

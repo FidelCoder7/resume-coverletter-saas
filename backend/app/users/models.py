@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, String, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -14,8 +15,6 @@ from app.database.enums import (
     subscription_plan_enum,
     user_role_enum,
 )
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.refresh_tokens.models import RefreshToken
@@ -101,6 +100,7 @@ class User(Base):
     )
 
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+        "RefreshToken",
         back_populates="user",
         cascade="all, delete-orphan",
     )

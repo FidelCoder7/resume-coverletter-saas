@@ -1,10 +1,14 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
+
+if TYPE_CHECKING:
+    from app.users.models import User
 
 
 class RefreshToken(Base):
@@ -53,11 +57,10 @@ class RefreshToken(Base):
         nullable=True,
     )
 
-    user = relationship(
+    user: Mapped["User"] = relationship(
         "User",
         back_populates="refresh_tokens",
     )
-
 
     @property
     def is_revoked(self) -> bool:
@@ -69,7 +72,4 @@ class RefreshToken(Base):
 
     @property
     def is_active(self) -> bool:
-        return (
-            not self.is_revoked
-            and not self.is_expired
-        )
+        return not self.is_revoked and not self.is_expired

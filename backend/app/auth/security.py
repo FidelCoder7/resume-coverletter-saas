@@ -1,3 +1,4 @@
+import hashlib
 from datetime import UTC, datetime, timedelta
 
 import jwt
@@ -26,6 +27,14 @@ def verify_password(
 ) -> bool:
     """Verify a plaintext password."""
     return password_hash.verify(password, hashed_password)
+
+
+def hash_refresh_token(token: str) -> str:
+    """
+    Return the SHA-256 hash of a refresh token.
+    """
+
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 # ------------------------------------------------------------------

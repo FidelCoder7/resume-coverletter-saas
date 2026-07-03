@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+import app.database.models
 from app.api.router import api_router
 from app.auth.router import router as auth_router
 from app.core.config import settings

@@ -15,6 +15,7 @@ from app.auth.exceptions import (
 )
 from app.auth.schemas import (
     AccessTokenResponse,
+    LogoutRequest,
     RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
@@ -22,6 +23,7 @@ from app.auth.schemas import (
 )
 from app.auth.service import AuthService
 from app.database.session import get_db
+from app.refresh_tokens.repository import RefreshTokenRepository
 from app.users.models import User
 from app.users.repository import UserRepository
 from app.users.service import UserService
@@ -68,8 +70,13 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
-    repository = UserRepository(db)
-    service = AuthService(repository)
+    user_repository = UserRepository(db)
+    refresh_repository = RefreshTokenRepository(db)
+
+    service = AuthService(
+        user_repository,
+        refresh_repository,
+    )
 
     try:
         access_token, refresh_token, user = service.login(
@@ -104,11 +111,16 @@ def refresh(
     request: RefreshTokenRequest,
     db: Session = Depends(get_db),
 ):
-    repository = UserRepository(db)
-    service = AuthService(repository)
+    user_repository = UserRepository(db)
+    refresh_repository = RefreshTokenRepository(db)
+
+    service = AuthService(
+        user_repository,
+        refresh_repository,
+    )
 
     try:
-        access_token = service.refresh_access_token(
+        access_token, refresh_token = service.refresh_access_token(
             request.refresh_token,
         )
 
@@ -126,7 +138,36 @@ def refresh(
 
     return AccessTokenResponse(
         access_token=access_token,
+        refresh_token=refresh_token,
     )
+
+
+@router.post(
+    "/logout",
+    status_code=204,
+)
+def logout(
+    request: LogoutRequest,
+    db: Session = Depends(get_db),
+):
+    user_repository = UserRepository(db)
+    refresh_repository = RefreshTokenRepository(db)
+
+    service = AuthService(
+        user_repository,
+        refresh_repository,
+    )
+
+    try:
+        service.logout(
+            request.refresh_token,
+        )
+
+    except InvalidToken as exc:
+        raise HTTPException(
+            status_code=401,
+            detail=str(exc),
+        ) from exc
 
 
 @router.get(
