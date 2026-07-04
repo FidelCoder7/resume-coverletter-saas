@@ -3,6 +3,7 @@ from uuid import UUID
 
 from app.auth.exceptions import (
     AccountInactive,
+    EmailNotVerified,
     InvalidCredentials,
     InvalidToken,
 )
@@ -59,6 +60,11 @@ class AuthService:
 
         if user.status != AccountStatus.ACTIVE:
             raise AccountInactive("Account is not active.")
+
+        if not user.is_email_verified:
+            raise EmailNotVerified(
+                "Please verify your email before logging in.",
+            )
 
         user.last_login_at = datetime.now(UTC)
 

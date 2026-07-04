@@ -10,6 +10,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.exceptions import (
     AccountInactive,
     EmailAlreadyRegistered,
+    EmailNotVerified,
     InvalidCredentials,
     InvalidToken,
 )
@@ -20,9 +21,21 @@ from app.auth.schemas import (
     RegisterRequest,
     TokenResponse,
     UserResponse,
+    VerifyEmailRequest,
 )
 from app.auth.service import AuthService
 from app.database.session import get_db
+from app.email_verification.exceptions import (
+    VerificationTokenExpired,
+    VerificationTokenInvalid,
+)
+from app.email_verification.repository import (
+    EmailVerificationRepository,
+)
+from app.email_verification.service import (
+    EmailVerificationService,
+)
+from app.mail.service import MailService
 from app.refresh_tokens.repository import RefreshTokenRepository
 from app.users.models import User
 from app.users.repository import UserRepository
@@ -43,8 +56,14 @@ def register(
     payload: RegisterRequest,
     db: Session = Depends(get_db),
 ):
-    repository = UserRepository(db)
-    service = UserService(repository)
+    user_repository = UserRepository(db)
+
+    verification_repository = EmailVerificationRepository(db)
+
+    service = UserService(
+        user_repository,
+        verification_repository,
+    )
 
     try:
         user = service.register(
@@ -60,6 +79,42 @@ def register(
         ) from exc
 
     return UserResponse.model_validate(user)
+
+
+@router.post(
+    "/verify-email",
+    status_code=204,
+)
+def verify_email(
+    request: VerifyEmailRequest,
+    db: Session = Depends(get_db),
+):
+    verification_repository = EmailVerificationRepository(db)
+
+    user_repository = UserRepository(db)
+
+    service = EmailVerificationService(
+        verification_repository,
+        user_repository,
+        MailService(),
+    )
+
+    try:
+        service.verify_email(
+            request.token,
+        )
+
+    except VerificationTokenInvalid as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    except VerificationTokenExpired as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post(
@@ -91,6 +146,12 @@ def login(
         ) from exc
 
     except AccountInactive as exc:
+        raise HTTPException(
+            status_code=403,
+            detail=str(exc),
+        ) from exc
+
+    except EmailNotVerified as exc:
         raise HTTPException(
             status_code=403,
             detail=str(exc),

@@ -16,3 +16,7 @@ class AccountInactive(AuthenticationError):
 
 class EmailAlreadyRegistered(AuthenticationError):
     """Raised when attempting to register an existing email."""
+
+
+class EmailNotVerified(Exception):
+    """Raised when a user has not verified their email."""

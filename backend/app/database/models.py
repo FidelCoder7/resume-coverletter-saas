@@ -6,6 +6,7 @@ all SQLAlchemy metadata.
 """
 
 from app.database.base import Base
+from app.email_verification.models import EmailVerificationToken
 from app.refresh_tokens.models import RefreshToken
 from app.users.models import User
 
@@ -17,4 +18,5 @@ __all__ = (
     "Base",
     "User",
     "RefreshToken",
+    "EmailVerificationToken",
 )

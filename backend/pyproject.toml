@@ -17,6 +17,7 @@ dependencies = [
     "pyjwt>=2.13.0",
     "email-validator>=2.3.0",
     "python-multipart>=0.0.32",
+    "fastapi-mail>=1.6.5",
 ]
 
 [dependency-groups]
@@ -40,6 +41,9 @@ line_length = 88
 [tool.ruff]
 line-length = 88
 target-version = "py313"
+extend-exclude = [
+    "alembic/versions",
+]
 
 [tool.ruff.lint]
 select = [
@@ -49,6 +53,7 @@ select = [
     "UP",
     "B",
 ]
+
 
 ignore = [
     "B008",
