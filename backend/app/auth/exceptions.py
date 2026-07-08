@@ -20,3 +20,11 @@ class EmailAlreadyRegistered(AuthenticationError):
 
 class EmailNotVerified(Exception):
     """Raised when a user has not verified their email."""
+
+
+class OAuthAccountConflict(AuthenticationError):
+    """
+    Raised when an email belongs to
+    a local account but OAuth login
+    is attempted.
+    """

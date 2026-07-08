@@ -59,3 +59,60 @@ def verification_email(
     """
 
     return subject, html
+
+
+def password_reset_email(
+    *,
+    full_name: str,
+    token: str,
+) -> tuple[str, str]:
+    """
+    Build the password reset email.
+    """
+
+    reset_url = f"{settings.FRONTEND_URL}" f"/reset-password?token={token}"
+
+    subject = "Reset your password"
+
+    html = f"""
+    <html>
+      <body
+        style="
+          font-family: Arial, sans-serif;
+          max-width: 600px;
+          margin: auto;
+        "
+      >
+        <h2>Hello, {full_name}!</h2>
+
+        <p>
+          We received a request to reset your password.
+        </p>
+
+        <p>
+          Click the link below:
+        </p>
+
+        <p>
+          <a href="{reset_url}">
+            Reset Password
+          </a>
+        </p>
+
+        <p>
+          This link expires in
+          {settings.PASSWORD_RESET_TOKEN_EXPIRE_HOURS}
+          hours.
+        </p>
+
+        <hr>
+
+        <small>
+          If you didn't request this, you can safely ignore this email.
+        </small>
+
+      </body>
+    </html>
+    """
+
+    return subject, html

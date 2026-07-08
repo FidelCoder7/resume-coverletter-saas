@@ -48,6 +48,45 @@ class AuthService:
 
         return user
 
+    def _issue_tokens(
+        self,
+        user: User,
+    ) -> tuple[str, str]:
+        """
+        Issue a new access token and refresh token,
+        persisting the refresh token.
+
+        Used by both local authentication and OAuth.
+        """
+
+        access_token = create_access_token(
+            str(user.id),
+        )
+
+        refresh_token = create_refresh_token(
+            str(user.id),
+        )
+
+        refresh_token_model = RefreshToken(
+            user_id=user.id,
+            token_hash=hash_refresh_token(
+                refresh_token,
+            ),
+            expires_at=datetime.now(UTC)
+            + timedelta(
+                days=settings.REFRESH_TOKEN_EXPIRE_DAYS,
+            ),
+        )
+
+        self.refresh_repository.create(
+            refresh_token_model,
+        )
+
+        return (
+            access_token,
+            refresh_token,
+        )
+
     def login(
         self,
         email: str,
@@ -70,19 +109,8 @@ class AuthService:
 
         self.repository.update(user)
 
-        access_token = create_access_token(str(user.id))
-        refresh_token = create_refresh_token(str(user.id))
-        refresh_token_model = RefreshToken(
-            user_id=user.id,
-            token_hash=hash_refresh_token(refresh_token),
-            expires_at=datetime.now(UTC)
-            + timedelta(
-                days=settings.REFRESH_TOKEN_EXPIRE_DAYS,
-            ),
-        )
-
-        self.refresh_repository.create(
-            refresh_token_model,
+        access_token, refresh_token = self._issue_tokens(
+            user,
         )
 
         return (
@@ -138,36 +166,8 @@ class AuthService:
         # Issue fresh tokens
         # ---------------------------------------------------------
 
-        new_access_token = create_access_token(
-            str(user.id),
-        )
-
-        new_refresh_token = create_refresh_token(
-            str(user.id),
-        )
-
-        # ---------------------------------------------------------
-        # Persist the new refresh token
-        # ---------------------------------------------------------
-
-        new_refresh_token_model = RefreshToken(
-            user_id=user.id,
-            token_hash=hash_refresh_token(
-                new_refresh_token,
-            ),
-            expires_at=datetime.now(UTC)
-            + timedelta(
-                days=settings.REFRESH_TOKEN_EXPIRE_DAYS,
-            ),
-        )
-
-        self.refresh_repository.create(
-            new_refresh_token_model,
-        )
-
-        return (
-            new_access_token,
-            new_refresh_token,
+        return self._issue_tokens(
+            user,
         )
 
     def logout(

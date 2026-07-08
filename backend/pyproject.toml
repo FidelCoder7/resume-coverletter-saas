@@ -19,6 +19,9 @@ dependencies = [
     "python-multipart>=0.0.32",
     "fastapi-mail>=1.6.5",
     "authlib>=1.7.2",
+    "google-auth>=2.55.1",
+    "itsdangerous>=2.2.0",
+    "slowapi>=0.1.10",
 ]
 
 [dependency-groups]
@@ -29,6 +32,7 @@ dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.0.0",
     "httpx>=0.28.1",
+    
 ]
 
 [tool.black]
