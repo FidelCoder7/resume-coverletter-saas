@@ -68,7 +68,7 @@ class EmailVerificationService:
         self.mail_service.send(
             recipient=user.email,
             subject=subject,
-            body=("Please verify your email.\n\n" f"Token: {raw_token}"),
+            body=(f"Please verify your email.\n\nToken: {raw_token}"),
             html=html,
         )
 

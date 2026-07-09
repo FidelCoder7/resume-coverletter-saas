@@ -15,6 +15,7 @@ from alembic import command
 from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.database.session import get_db
+from app.mail.service import MailService
 from app.main import app
 
 engine = create_engine(
@@ -139,3 +140,19 @@ def client(
 
     limiter.enabled = True
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(autouse=True)
+def disable_email(monkeypatch):
+    """
+    Prevent real emails from being sent during tests.
+    """
+
+    def fake_send(self, *args, **kwargs):
+        return None
+
+    monkeypatch.setattr(
+        MailService,
+        "send",
+        fake_send,
+    )

@@ -71,7 +71,7 @@ class PasswordResetService:
         self.mail_service.send(
             recipient=user.email,
             subject=subject,
-            body=("Reset your password.\n\n" f"Token: {raw_token}"),
+            body=(f"Reset your password.\n\nToken: {raw_token}"),
             html=html,
         )
 

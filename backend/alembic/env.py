@@ -5,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.core.config import settings
 from app.database.base import Base
+from app.educations.models import Education  # noqa: F401
 from app.email_verification.models import EmailVerificationToken  # noqa: F401
 from app.experiences.models import Experience  # noqa: F401
 from app.password_reset.models import PasswordResetToken  # noqa: F401

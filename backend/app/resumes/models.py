@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 
 if TYPE_CHECKING:
+    from app.educations.models import Education
     from app.experiences.models import Experience
     from app.users.models import User
 
@@ -44,6 +45,12 @@ class Resume(Base):
 
     experiences: Mapped[list["Experience"]] = relationship(
         "Experience",
+        back_populates="resume",
+        cascade="all, delete-orphan",
+    )
+
+    educations: Mapped[list["Education"]] = relationship(
+        "Education",
         back_populates="resume",
         cascade="all, delete-orphan",
     )

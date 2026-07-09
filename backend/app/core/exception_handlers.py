@@ -11,6 +11,10 @@ from app.auth.exceptions import (
     InvalidToken,
     OAuthAccountConflict,
 )
+from app.educations.exceptions import (
+    EducationAccessDenied,
+    EducationNotFound,
+)
 from app.email_verification.exceptions import (
     VerificationTokenExpired,
     VerificationTokenInvalid,
@@ -160,5 +164,17 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     add_handler(
         ExperienceAccessDenied,
+        403,
+    )
+
+    # Education management
+
+    add_handler(
+        EducationNotFound,
+        404,
+    )
+
+    add_handler(
+        EducationAccessDenied,
         403,
     )

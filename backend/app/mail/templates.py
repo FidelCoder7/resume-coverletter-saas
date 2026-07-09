@@ -13,7 +13,7 @@ def verification_email(
         (subject, html)
     """
 
-    verify_url = f"{settings.FRONTEND_URL}" f"/verify-email?token={token}"
+    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
 
     subject = "Verify your email"
 
@@ -70,7 +70,7 @@ def password_reset_email(
     Build the password reset email.
     """
 
-    reset_url = f"{settings.FRONTEND_URL}" f"/reset-password?token={token}"
+    reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
 
     subject = "Reset your password"
 
