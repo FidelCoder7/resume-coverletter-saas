@@ -22,3 +22,15 @@ class AccountStatus(StrEnum):
 class SubscriptionPlan(StrEnum):
     FREE = "free"
     PRO = "pro"
+
+
+class EmploymentType(StrEnum):
+    FULL_TIME = "full_time"
+    PART_TIME = "part_time"
+    CONTRACT = "contract"
+    FREELANCE = "freelance"
+    INTERNSHIP = "internship"
+    APPRENTICESHIP = "apprenticeship"
+    TEMPORARY = "temporary"
+    SEASONAL = "seasonal"
+    VOLUNTEER = "volunteer"

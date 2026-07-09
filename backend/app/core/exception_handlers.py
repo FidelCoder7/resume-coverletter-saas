@@ -15,6 +15,10 @@ from app.email_verification.exceptions import (
     VerificationTokenExpired,
     VerificationTokenInvalid,
 )
+from app.experiences.exceptions import (
+    ExperienceAccessDenied,
+    ExperienceNotFound,
+)
 from app.oauth.exceptions import (
     GoogleAuthenticationFailed,
     GoogleAuthorizationCancelled,
@@ -144,5 +148,17 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     add_handler(
         ResumeAccessDenied,
+        403,
+    )
+
+    # Experience management
+
+    add_handler(
+        ExperienceNotFound,
+        404,
+    )
+
+    add_handler(
+        ExperienceAccessDenied,
         403,
     )

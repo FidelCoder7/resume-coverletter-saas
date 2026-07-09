@@ -2,6 +2,7 @@ from sqlalchemy import Enum
 
 from app.common.constants import (
     AccountStatus,
+    EmploymentType,
     SubscriptionPlan,
     UserRole,
 )
@@ -19,4 +20,10 @@ account_status_enum = Enum(
 subscription_plan_enum = Enum(
     SubscriptionPlan,
     name="subscription_plan",
+)
+
+
+employment_type_enum = Enum(
+    EmploymentType,
+    name="employment_type",
 )

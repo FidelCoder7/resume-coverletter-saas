@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.router import router as v1_router
+from app.experiences.router import router as experiences_router
 from app.resumes.router import router as resumes_router
 from app.users.router import router as users_router
 
@@ -17,4 +18,8 @@ api_router.include_router(
 
 api_router.include_router(
     resumes_router,
+)
+
+api_router.include_router(
+    experiences_router,
 )
