@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.users.models import (
+from app.common.constants import (
     AccountStatus,
     SubscriptionPlan,
     UserRole,
@@ -22,6 +22,8 @@ class UserResponse(BaseModel):
     id: UUID
     email: EmailStr
     full_name: str
+
+    is_email_verified: bool
 
     role: UserRole
     subscription_plan: SubscriptionPlan
@@ -59,3 +61,19 @@ class AccessTokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(
+        min_length=8,
+        max_length=128,
+    )

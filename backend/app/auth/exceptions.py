@@ -16,3 +16,15 @@ class AccountInactive(AuthenticationError):
 
 class EmailAlreadyRegistered(AuthenticationError):
     """Raised when attempting to register an existing email."""
+
+
+class EmailNotVerified(Exception):
+    """Raised when a user has not verified their email."""
+
+
+class OAuthAccountConflict(AuthenticationError):
+    """
+    Raised when an email belongs to
+    a local account but OAuth login
+    is attempted.
+    """

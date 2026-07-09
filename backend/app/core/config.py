@@ -1,5 +1,7 @@
+import os
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.common.constants import Environment
@@ -13,6 +15,7 @@ class Settings(BaseSettings):
     APP_ENV: Environment
 
     DATABASE_URL: str
+    TEST_DATABASE_URL: str | None = None
 
     SECRET_KEY: str
     REFRESH_SECRET_KEY: str
@@ -21,11 +24,34 @@ class Settings(BaseSettings):
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
+    EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS: int
+    PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int
+
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_HOST: str
+    MAIL_PORT: int
+
+    MAIL_STARTTLS: bool
+    MAIL_SSL_TLS: bool
+
+    MAIL_FROM: str
+    MAIL_FROM_NAME: str
+
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_REDIRECT_URI: str
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=os.getenv("ENV_FILE", ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
+    )
+
+    FRONTEND_URL: str
+
+    CORS_ORIGINS: list[str] = Field(
+        default_factory=list,
     )
 
 

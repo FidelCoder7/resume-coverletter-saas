@@ -17,7 +17,9 @@ from app.database.enums import (
 )
 
 if TYPE_CHECKING:
+    from app.email_verification.models import EmailVerificationToken
     from app.refresh_tokens.models import RefreshToken
+    from app.resumes.models import Resume
 
 
 class User(Base):
@@ -43,9 +45,15 @@ class User(Base):
     # Authentication
     # ------------------------------------------------------------------
 
-    password_hash: Mapped[str] = mapped_column(
+    password_hash: Mapped[str | None] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
+    )
+
+    google_id: Mapped[str | None] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=True,
     )
 
     is_email_verified: Mapped[bool] = mapped_column(
@@ -81,7 +89,7 @@ class User(Base):
 
     status: Mapped[AccountStatus] = mapped_column(
         account_status_enum,
-        default=AccountStatus.ACTIVE,
+        default=AccountStatus.PENDING,
         nullable=False,
     )
 
@@ -101,6 +109,22 @@ class User(Base):
 
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    email_verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(
+        "EmailVerificationToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # ------------------------------------------------------------------
+    # Resume
+    # ------------------------------------------------------------------
+
+    resumes: Mapped[list["Resume"]] = relationship(
+        "Resume",
         back_populates="user",
         cascade="all, delete-orphan",
     )

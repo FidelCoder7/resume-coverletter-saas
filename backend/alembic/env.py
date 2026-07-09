@@ -4,7 +4,12 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from app.core.config import settings
-from app.database.models import Base
+from app.database.base import Base
+from app.email_verification.models import EmailVerificationToken  # noqa: F401
+from app.password_reset.models import PasswordResetToken  # noqa: F401
+from app.refresh_tokens.models import RefreshToken  # noqa: F401
+from app.resumes.models import Resume  # noqa: F401
+from app.users.models import User  # noqa: F401
 
 config = context.config
 

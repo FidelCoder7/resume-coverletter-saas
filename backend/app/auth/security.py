@@ -1,4 +1,5 @@
 import hashlib
+import secrets
 from datetime import UTC, datetime, timedelta
 
 import jwt
@@ -35,6 +36,28 @@ def hash_refresh_token(token: str) -> str:
     """
 
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def generate_email_verification_token() -> str:
+    """
+    Generate a cryptographically secure email
+    verification token.
+    """
+
+    return secrets.token_urlsafe(32)
+
+
+def hash_email_verification_token(
+    token: str,
+) -> str:
+    """
+    Return the SHA-256 hash of an email
+    verification token.
+    """
+
+    return hashlib.sha256(
+        token.encode("utf-8"),
+    ).hexdigest()
 
 
 # ------------------------------------------------------------------
@@ -134,3 +157,23 @@ def decode_refresh_token(token: str) -> TokenPayload:
 
     except JWTInvalidTokenError as exc:
         raise InvalidToken("Invalid or expired refresh token.") from exc
+
+
+def generate_password_reset_token() -> str:
+    """
+    Generate a secure password reset token.
+    """
+
+    return secrets.token_urlsafe(32)
+
+
+def hash_password_reset_token(
+    token: str,
+) -> str:
+    """
+    Return the SHA-256 hash of a password reset token.
+    """
+
+    return hashlib.sha256(
+        token.encode("utf-8"),
+    ).hexdigest()

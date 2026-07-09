@@ -14,6 +14,7 @@ from app.users.repository import UserRepository
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/auth/login",
+    auto_error=True,
 )
 
 
