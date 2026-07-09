@@ -19,6 +19,7 @@ from app.database.enums import (
 if TYPE_CHECKING:
     from app.email_verification.models import EmailVerificationToken
     from app.refresh_tokens.models import RefreshToken
+    from app.resumes.models import Resume
 
 
 class User(Base):
@@ -114,6 +115,16 @@ class User(Base):
 
     email_verification_tokens: Mapped[list["EmailVerificationToken"]] = relationship(
         "EmailVerificationToken",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # ------------------------------------------------------------------
+    # Resume
+    # ------------------------------------------------------------------
+
+    resumes: Mapped[list["Resume"]] = relationship(
+        "Resume",
         back_populates="user",
         cascade="all, delete-orphan",
     )

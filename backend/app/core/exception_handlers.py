@@ -25,6 +25,10 @@ from app.password_reset.exceptions import (
     PasswordResetTokenExpired,
     PasswordResetTokenInvalid,
 )
+from app.resumes.exceptions import (
+    ResumeAccessDenied,
+    ResumeNotFound,
+)
 
 logger = getLogger(__name__)
 
@@ -129,4 +133,16 @@ def register_exception_handlers(app: FastAPI) -> None:
     add_handler(
         PasswordResetTokenExpired,
         400,
+    )
+
+    # Resume
+
+    add_handler(
+        ResumeNotFound,
+        404,
+    )
+
+    add_handler(
+        ResumeAccessDenied,
+        403,
     )
