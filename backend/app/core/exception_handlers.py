@@ -37,6 +37,10 @@ from app.resumes.exceptions import (
     ResumeAccessDenied,
     ResumeNotFound,
 )
+from app.skills.exceptions import (
+    SkillAccessDenied,
+    SkillNotFound,
+)
 
 logger = getLogger(__name__)
 
@@ -176,5 +180,17 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     add_handler(
         EducationAccessDenied,
+        403,
+    )
+
+    # Skills management
+
+    add_handler(
+        SkillNotFound,
+        404,
+    )
+
+    add_handler(
+        SkillAccessDenied,
         403,
     )

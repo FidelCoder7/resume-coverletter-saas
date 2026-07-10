@@ -34,3 +34,10 @@ class EmploymentType(StrEnum):
     TEMPORARY = "temporary"
     SEASONAL = "seasonal"
     VOLUNTEER = "volunteer"
+
+
+class SkillLevel(StrEnum):
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+    EXPERT = "expert"

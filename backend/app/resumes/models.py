@@ -5,6 +5,7 @@ from sqlalchemy import Boolean, ForeignKey, String, Text, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
+from app.skills.models import Skill
 
 if TYPE_CHECKING:
     from app.educations.models import Education
@@ -53,4 +54,11 @@ class Resume(Base):
         "Education",
         back_populates="resume",
         cascade="all, delete-orphan",
+    )
+
+    skills: Mapped[list["Skill"]] = relationship(
+        "Skill",
+        back_populates="resume",
+        cascade="all, delete-orphan",
+        order_by="Skill.display_order",
     )

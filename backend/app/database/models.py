@@ -12,6 +12,7 @@ from app.experiences.models import Experience
 from app.password_reset.models import PasswordResetToken
 from app.refresh_tokens.models import RefreshToken
 from app.resumes.models import Resume
+from app.skills.models import Skill
 from app.users.models import User
 
 # Future imports
@@ -25,4 +26,5 @@ __all__ = (
     "RefreshToken",
     "EmailVerificationToken",
     "PasswordResetToken",
+    "Skill",
 )

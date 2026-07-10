@@ -11,6 +11,7 @@ from app.experiences.models import Experience  # noqa: F401
 from app.password_reset.models import PasswordResetToken  # noqa: F401
 from app.refresh_tokens.models import RefreshToken  # noqa: F401
 from app.resumes.models import Resume  # noqa: F401
+from app.skills.models import Skill  # noqa: F401
 from app.users.models import User  # noqa: F401
 
 config = context.config
