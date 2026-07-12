@@ -6,6 +6,7 @@ all SQLAlchemy metadata.
 """
 
 from app.certifications.models import Certification
+from app.cover_letters.models import CoverLetter
 from app.database.base import Base
 from app.educations.models import Education
 from app.email_verification.models import EmailVerificationToken
@@ -17,12 +18,11 @@ from app.resumes.models import Resume
 from app.skills.models import Skill
 from app.users.models import User
 
-# Future imports
-
 __all__ = (
     "Base",
     "Education",
     "Certification",
+    "CoverLetter",
     "User",
     "Resume",
     "Experience",

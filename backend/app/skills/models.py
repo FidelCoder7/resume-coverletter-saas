@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.common.constants import SkillLevel
@@ -48,5 +48,10 @@ class Skill(Base):
             "resume_id",
             "name",
             name="uq_skill_resume_name",
+        ),
+        Index(
+            "ix_skills_resume_order",
+            "resume_id",
+            "display_order",
         ),
     )

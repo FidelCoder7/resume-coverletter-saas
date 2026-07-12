@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, String, Text, false
+from sqlalchemy import Boolean, ForeignKey, Index, String, Text, false, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -9,6 +9,7 @@ from app.skills.models import Skill
 
 if TYPE_CHECKING:
     from app.certifications.models import Certification
+    from app.cover_letters.models import CoverLetter
     from app.educations.models import Education
     from app.experiences.models import Experience
     from app.projects.models import Project
@@ -77,4 +78,19 @@ class Resume(Base):
         back_populates="resume",
         cascade="all, delete-orphan",
         order_by="Certification.display_order",
+    )
+
+    cover_letters: Mapped[list["CoverLetter"]] = relationship(
+        "CoverLetter",
+        back_populates="resume",
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        Index(
+            "uq_default_resume_per_user",
+            "user_id",
+            unique=True,
+            postgresql_where=text("is_default = true"),
+        ),
     )

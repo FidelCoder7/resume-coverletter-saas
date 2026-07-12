@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.router import router as v1_router
 from app.certifications.router import router as certifications_router
+from app.cover_letters.router import router as cover_letters_router
 from app.educations.router import router as education_router
 from app.experiences.router import router as experiences_router
 from app.projects.router import router as projects_router
@@ -43,3 +44,8 @@ api_router.include_router(
 api_router.include_router(
     certifications_router,
 )
+
+api_router.include_router(
+    cover_letters_router,
+)
+

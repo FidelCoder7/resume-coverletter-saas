@@ -5,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.certifications.models import Certification  # noqa: F401
 from app.core.config import settings
+from app.cover_letters.models import CoverLetter  # noqa: F401
 from app.database.base import Base
 from app.educations.models import Education  # noqa: F401
 from app.email_verification.models import EmailVerificationToken  # noqa: F401

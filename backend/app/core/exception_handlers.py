@@ -17,6 +17,11 @@ from app.certifications.exceptions import (
     DuplicateCertification,
     InvalidCertificationDate,
 )
+from app.cover_letters.exceptions import (
+    CoverLetterAccessDenied,
+    CoverLetterNotFound,
+    DuplicateCoverLetter,
+)
 from app.educations.exceptions import (
     EducationAccessDenied,
     EducationNotFound,
@@ -96,6 +101,10 @@ EXCEPTION_HANDLERS: tuple[tuple[type[Exception], int], ...] = (
     (CertificationNotFound, 404),
     (InvalidCertificationDate, 400),
     (DuplicateCertification, 409),
+    # Cover Letter management
+    (CoverLetterNotFound, 404),
+    (CoverLetterAccessDenied, 403),
+    (DuplicateCoverLetter, 409),
 )
 
 
