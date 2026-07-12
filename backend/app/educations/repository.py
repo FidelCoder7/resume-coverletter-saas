@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.educations.models import Education
@@ -38,13 +39,11 @@ class EducationRepository:
         Return an education by its ID.
         """
 
-        return (
-            self.db.query(Education)
-            .filter(
-                Education.id == education_id,
-            )
-            .first()
+        statement = select(Education).where(
+            Education.id == education_id,
         )
+
+        return self.db.scalar(statement)
 
     def list_by_resume(
         self,
@@ -54,17 +53,18 @@ class EducationRepository:
         Return all education entries for a resume.
         """
 
-        return (
-            self.db.query(Education)
-            .filter(
+        statement = (
+            select(Education)
+            .where(
                 Education.resume_id == resume_id,
             )
             .order_by(
-                Education.display_order,
+                Education.display_order.asc(),
                 Education.start_date.desc(),
             )
-            .all()
         )
+
+        return list(self.db.scalars(statement))
 
     def update(
         self,
