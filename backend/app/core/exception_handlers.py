@@ -33,6 +33,11 @@ from app.password_reset.exceptions import (
     PasswordResetTokenExpired,
     PasswordResetTokenInvalid,
 )
+from app.projects.exceptions import (
+    InvalidProjectDate,
+    ProjectAccessDenied,
+    ProjectNotFound,
+)
 from app.resumes.exceptions import (
     ResumeAccessDenied,
     ResumeNotFound,
@@ -193,4 +198,21 @@ def register_exception_handlers(app: FastAPI) -> None:
     add_handler(
         SkillAccessDenied,
         403,
+    )
+
+    # Projects
+
+    add_handler(
+        ProjectNotFound,
+        404,
+    )
+
+    add_handler(
+        ProjectAccessDenied,
+        403,
+    )
+
+    add_handler(
+        InvalidProjectDate,
+        400,
     )

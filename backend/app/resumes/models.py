@@ -10,6 +10,7 @@ from app.skills.models import Skill
 if TYPE_CHECKING:
     from app.educations.models import Education
     from app.experiences.models import Experience
+    from app.projects.models import Project
     from app.users.models import User
 
 
@@ -61,4 +62,11 @@ class Resume(Base):
         back_populates="resume",
         cascade="all, delete-orphan",
         order_by="Skill.display_order",
+    )
+
+    projects: Mapped[list["Project"]] = relationship(
+        "Project",
+        back_populates="resume",
+        cascade="all, delete-orphan",
+        order_by="Project.display_order",
     )
