@@ -56,190 +56,80 @@ from app.skills.exceptions import (
 logger = getLogger(__name__)
 
 
+EXCEPTION_HANDLERS: tuple[tuple[type[Exception], int], ...] = (
+    # Authentication
+    (InvalidCredentials, 401),
+    (InvalidToken, 401),
+    (EmailAlreadyRegistered, 409),
+    (EmailNotVerified, 403),
+    (AccountInactive, 403),
+    (OAuthAccountConflict, 409),
+    # Google OAuth
+    (GoogleAuthenticationFailed, 401),
+    (GoogleAuthorizationCancelled, 400),
+    (GoogleEmailNotAvailable, 400),
+    (GoogleEmailNotVerified, 403),
+    # Email verification
+    (VerificationTokenInvalid, 400),
+    (VerificationTokenExpired, 400),
+    # Password reset
+    (PasswordResetTokenInvalid, 400),
+    (PasswordResetTokenExpired, 400),
+    # Resume management
+    (ResumeNotFound, 404),
+    (ResumeAccessDenied, 403),
+    # Experience management
+    (ExperienceNotFound, 404),
+    (ExperienceAccessDenied, 403),
+    # Education management
+    (EducationNotFound, 404),
+    (EducationAccessDenied, 403),
+    # Skills management
+    (SkillNotFound, 404),
+    (SkillAccessDenied, 403),
+    # Projects management
+    (ProjectNotFound, 404),
+    (ProjectAccessDenied, 403),
+    (InvalidProjectDate, 400),
+    # Certifications management
+    (CertificationAccessDenied, 403),
+    (CertificationNotFound, 404),
+    (InvalidCertificationDate, 400),
+    (DuplicateCertification, 409),
+)
+
+
+def _add_handler(
+    app: FastAPI,
+    exc_type: type[Exception],
+    status_code: int,
+) -> None:
+    @app.exception_handler(exc_type)
+    async def handler(
+        request: Request,
+        exc: Exception,
+    ) -> JSONResponse:
+        logger.warning(
+            "%s: %s",
+            exc_type.__name__,
+            exc,
+        )
+
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "detail": str(exc),
+            },
+        )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """
     Register global exception handlers.
     """
-
-    def add_handler(exc_type, status_code: int):
-        @app.exception_handler(exc_type)
-        async def handler(
-            request: Request,
-            exc: Exception,
-        ):
-            logger.warning(
-                "%s: %s",
-                exc_type.__name__,
-                exc,
-            )
-
-            return JSONResponse(
-                status_code=status_code,
-                content={
-                    "detail": str(exc),
-                },
-            )
-
-    # Authentication
-
-    add_handler(
-        InvalidCredentials,
-        401,
-    )
-
-    add_handler(
-        InvalidToken,
-        401,
-    )
-
-    add_handler(
-        EmailAlreadyRegistered,
-        409,
-    )
-
-    add_handler(
-        EmailNotVerified,
-        403,
-    )
-
-    add_handler(
-        AccountInactive,
-        403,
-    )
-
-    add_handler(
-        OAuthAccountConflict,
-        409,
-    )
-
-    # Google OAuth
-
-    add_handler(
-        GoogleAuthenticationFailed,
-        401,
-    )
-
-    add_handler(
-        GoogleAuthorizationCancelled,
-        400,
-    )
-
-    add_handler(
-        GoogleEmailNotAvailable,
-        400,
-    )
-
-    add_handler(
-        GoogleEmailNotVerified,
-        403,
-    )
-
-    # Email verification
-
-    add_handler(
-        VerificationTokenInvalid,
-        400,
-    )
-
-    add_handler(
-        VerificationTokenExpired,
-        400,
-    )
-
-    # Password reset
-
-    add_handler(
-        PasswordResetTokenInvalid,
-        400,
-    )
-
-    add_handler(
-        PasswordResetTokenExpired,
-        400,
-    )
-
-    # Resume Management
-
-    add_handler(
-        ResumeNotFound,
-        404,
-    )
-
-    add_handler(
-        ResumeAccessDenied,
-        403,
-    )
-
-    # Experience management
-
-    add_handler(
-        ExperienceNotFound,
-        404,
-    )
-
-    add_handler(
-        ExperienceAccessDenied,
-        403,
-    )
-
-    # Education management
-
-    add_handler(
-        EducationNotFound,
-        404,
-    )
-
-    add_handler(
-        EducationAccessDenied,
-        403,
-    )
-
-    # Skills management
-
-    add_handler(
-        SkillNotFound,
-        404,
-    )
-
-    add_handler(
-        SkillAccessDenied,
-        403,
-    )
-
-    # Projects management
-
-    add_handler(
-        ProjectNotFound,
-        404,
-    )
-
-    add_handler(
-        ProjectAccessDenied,
-        403,
-    )
-
-    add_handler(
-        InvalidProjectDate,
-        400,
-    )
-
-    # certification management
-    add_handler(
-        CertificationAccessDenied,
-        403,
-    )
-
-    add_handler(
-        CertificationNotFound,
-        404,
-    )
-
-    add_handler(
-        InvalidCertificationDate,
-        400,
-    )
-
-    add_handler(
-        DuplicateCertification,
-        409,
-    )
+    for exc_type, status_code in EXCEPTION_HANDLERS:
+        _add_handler(
+            app,
+            exc_type,
+            status_code,
+        )
