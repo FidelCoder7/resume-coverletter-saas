@@ -11,6 +11,12 @@ from app.auth.exceptions import (
     InvalidToken,
     OAuthAccountConflict,
 )
+from app.certifications.exceptions import (
+    CertificationAccessDenied,
+    CertificationNotFound,
+    DuplicateCertification,
+    InvalidCertificationDate,
+)
 from app.educations.exceptions import (
     EducationAccessDenied,
     EducationNotFound,
@@ -152,7 +158,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         400,
     )
 
-    # Resume
+    # Resume Management
 
     add_handler(
         ResumeNotFound,
@@ -200,7 +206,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         403,
     )
 
-    # Projects
+    # Projects management
 
     add_handler(
         ProjectNotFound,
@@ -215,4 +221,25 @@ def register_exception_handlers(app: FastAPI) -> None:
     add_handler(
         InvalidProjectDate,
         400,
+    )
+
+    # certification management
+    add_handler(
+        CertificationAccessDenied,
+        403,
+    )
+
+    add_handler(
+        CertificationNotFound,
+        404,
+    )
+
+    add_handler(
+        InvalidCertificationDate,
+        400,
+    )
+
+    add_handler(
+        DuplicateCertification,
+        409,
     )
