@@ -6,7 +6,9 @@ from app.auth.dependencies import get_current_user
 from app.cover_letters.dependencies import get_cover_letter_service
 from app.cover_letters.schemas import (
     CoverLetterCreate,
+    CoverLetterGenerateRequest,
     CoverLetterListResponse,
+    CoverLetterRegenerateRequest,
     CoverLetterResponse,
     CoverLetterUpdate,
 )
@@ -37,6 +39,44 @@ def create_cover_letter(
         company_name=payload.company_name,
         job_title=payload.job_title,
         content=payload.content,
+    )
+
+
+@router.post(
+    "/resume/{resume_id}/generate",
+    response_model=CoverLetterResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def generate_cover_letter(
+    resume_id: UUID,
+    payload: CoverLetterGenerateRequest,
+    current_user: User = Depends(get_current_user),
+    service: CoverLetterService = Depends(get_cover_letter_service),
+):
+    return service.generate_cover_letter(
+        user_id=current_user.id,
+        resume_id=resume_id,
+        title=payload.title,
+        company_name=payload.company_name,
+        job_title=payload.job_title,
+        job_description=payload.job_description,
+    )
+
+
+@router.post(
+    "/{cover_letter_id}/regenerate",
+    response_model=CoverLetterResponse,
+)
+def regenerate_cover_letter(
+    cover_letter_id: UUID,
+    payload: CoverLetterRegenerateRequest,
+    current_user: User = Depends(get_current_user),
+    service: CoverLetterService = Depends(get_cover_letter_service),
+):
+    return service.regenerate_cover_letter(
+        user_id=current_user.id,
+        cover_letter_id=cover_letter_id,
+        job_description=payload.job_description,
     )
 
 

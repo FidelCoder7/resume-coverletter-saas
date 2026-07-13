@@ -12,6 +12,13 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
+from app.ai.dependencies import get_ai_service
+from app.ai.providers import AIProvider
+from app.ai.schemas import (
+    CoverLetterGenerationRequest,
+    CoverLetterGenerationResponse,
+)
+from app.ai.service import AIService
 from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.database.session import get_db
@@ -29,6 +36,20 @@ TestingSessionLocal = sessionmaker(
     autocommit=False,
     expire_on_commit=False,
 )
+
+
+class FakeAIProvider(AIProvider):
+    """
+    Fake AI provider used during tests.
+    """
+
+    def generate_cover_letter(
+        self,
+        request: CoverLetterGenerationRequest,
+    ) -> CoverLetterGenerationResponse:
+        return CoverLetterGenerationResponse(
+            content=("This is a generated cover letter for testing purposes."),
+        )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -55,7 +76,6 @@ def apply_migrations():
 @pytest.fixture(scope="session")
 def db_engine():
     yield engine
-
     engine.dispose()
 
 
@@ -69,7 +89,6 @@ def connection(
     """
 
     connection = db_engine.connect()
-
     transaction = connection.begin()
 
     try:
@@ -121,8 +140,20 @@ def db_session(
 
 
 @pytest.fixture()
+def fake_ai_service() -> AIService:
+    """
+    AI service backed by a deterministic fake provider.
+    """
+
+    return AIService(
+        provider=FakeAIProvider(),
+    )
+
+
+@pytest.fixture()
 def client(
     db_session: Session,
+    fake_ai_service: AIService,
 ) -> Generator[TestClient]:
     """
     FastAPI TestClient using the testing database.
@@ -131,7 +162,11 @@ def client(
     def override_get_db():
         yield db_session
 
+    def override_get_ai_service():
+        return fake_ai_service
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_ai_service] = override_get_ai_service
 
     limiter.enabled = False
 

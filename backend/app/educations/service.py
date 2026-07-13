@@ -44,7 +44,7 @@ class EducationService:
 
         if resume.user_id != user_id:
             raise EducationAccessDenied(
-                "You do not have permission to modify this resume.",
+                "You do not have permission to access this resume.",
             )
 
         return resume

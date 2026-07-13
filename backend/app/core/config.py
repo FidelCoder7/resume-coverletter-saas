@@ -8,7 +8,9 @@ from app.common.constants import Environment
 
 
 class Settings(BaseSettings):
-    """Application configuration."""
+    """
+    Application configuration.
+    """
 
     APP_NAME: str
     APP_VERSION: str
@@ -42,22 +44,52 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI: str
 
-    model_config = SettingsConfigDict(
-        env_file=os.getenv("ENV_FILE", ".env"),
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-    )
-
     FRONTEND_URL: str
 
     CORS_ORIGINS: list[str] = Field(
         default_factory=list,
     )
 
+    #
+    # AI Configuration
+    #
+
+    OPENAI_API_KEY: str | None = None
+
+    OPENAI_MODEL: str = "gpt-5"
+
+    OPENAI_TIMEOUT: int = Field(
+        default=60,
+        gt=0,
+    )
+
+    OPENAI_MAX_TOKENS: int = Field(
+        default=1200,
+        gt=0,
+    )
+
+    OPENAI_TEMPERATURE: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=2.0,
+    )
+
+    model_config = SettingsConfigDict(
+        env_file=os.getenv(
+            "ENV_FILE",
+            ".env",
+        ),
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
-    """Return a cached settings instance."""
+    """
+    Return a cached settings instance.
+    """
+
     return Settings()
 
 

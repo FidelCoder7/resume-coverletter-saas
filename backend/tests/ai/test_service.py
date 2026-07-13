@@ -1,0 +1,64 @@
+import pytest
+
+from app.ai.exceptions import AIGenerationError
+from app.ai.providers import AIProvider
+from app.ai.schemas import (
+    CoverLetterGenerationRequest,
+    CoverLetterGenerationResponse,
+)
+from app.ai.service import AIService
+
+
+class SuccessfulProvider(AIProvider):
+    def generate_cover_letter(
+        self,
+        request: CoverLetterGenerationRequest,
+    ) -> CoverLetterGenerationResponse:
+        return CoverLetterGenerationResponse(
+            content="Generated cover letter.",
+        )
+
+
+class FailingProvider(AIProvider):
+    def generate_cover_letter(
+        self,
+        request: CoverLetterGenerationRequest,
+    ) -> CoverLetterGenerationResponse:
+        raise AIGenerationError(
+            "Generation failed.",
+        )
+
+
+def build_request() -> CoverLetterGenerationRequest:
+    return CoverLetterGenerationRequest(
+        company_name="OpenAI",
+        job_title="Backend Engineer",
+        job_description=("Looking for a Python backend engineer."),
+        resume_content=("Experienced FastAPI developer."),
+    )
+
+
+def test_generate_cover_letter_success():
+    service = AIService(
+        provider=SuccessfulProvider(),
+    )
+
+    response = service.generate_cover_letter(
+        build_request(),
+    )
+
+    assert response.content == "Generated cover letter."
+
+
+def test_generate_cover_letter_propagates_provider_exception():
+    service = AIService(
+        provider=FailingProvider(),
+    )
+
+    with pytest.raises(
+        AIGenerationError,
+        match="Generation failed.",
+    ):
+        service.generate_cover_letter(
+            build_request(),
+        )

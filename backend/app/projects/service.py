@@ -45,7 +45,7 @@ class ProjectService:
 
         if resume.user_id != user_id:
             raise ProjectAccessDenied(
-                "You do not have permission to modify this resume.",
+                "You do not have permission to access this resume.",
             )
 
         return resume

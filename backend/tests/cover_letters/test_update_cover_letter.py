@@ -133,7 +133,7 @@ def test_cannot_update_another_users_cover_letter(
     assert response.status_code == 403
 
     assert response.json() == {
-        "detail": "You do not have permission to modify this resume."
+        "detail": "You do not have permission to access this resume."
     }
 
 

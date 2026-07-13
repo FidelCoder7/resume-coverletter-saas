@@ -1,5 +1,8 @@
 from uuid import UUID
 
+from app.ai.formatters import ResumeFormatter
+from app.ai.schemas import CoverLetterGenerationRequest
+from app.ai.service import AIService
 from app.cover_letters.exceptions import (
     CoverLetterAccessDenied,
     CoverLetterNotFound,
@@ -18,9 +21,11 @@ class CoverLetterService:
         self,
         repository: CoverLetterRepository,
         resume_repository: ResumeRepository,
+        ai_service: AIService,
     ):
         self.repository = repository
         self.resume_repository = resume_repository
+        self.ai_service = ai_service
 
     def _verify_resume_owner(
         self,
@@ -28,10 +33,6 @@ class CoverLetterService:
         resume_id: UUID,
         user_id: UUID,
     ):
-        """
-        Ensure the resume belongs to the authenticated user.
-        """
-
         resume = self.resume_repository.get_by_id(
             resume_id,
         )
@@ -43,7 +44,7 @@ class CoverLetterService:
 
         if resume.user_id != user_id:
             raise CoverLetterAccessDenied(
-                "You do not have permission to modify this resume.",
+                "You do not have permission to access this resume.",
             )
 
         return resume
@@ -148,5 +149,81 @@ class CoverLetterService:
         )
 
         self.repository.delete(
+            cover_letter,
+        )
+
+    def generate_cover_letter(
+        self,
+        *,
+        user_id: UUID,
+        resume_id: UUID,
+        title: str,
+        company_name: str,
+        job_title: str,
+        job_description: str,
+    ) -> CoverLetter:
+        resume = self._verify_resume_owner(
+            resume_id=resume_id,
+            user_id=user_id,
+        )
+
+        ai_request = CoverLetterGenerationRequest(
+            company_name=company_name,
+            job_title=job_title,
+            job_description=job_description,
+            resume_content=ResumeFormatter.format(
+                resume,
+            ),
+        )
+
+        ai_response = self.ai_service.generate_cover_letter(
+            ai_request,
+        )
+
+        cover_letter = CoverLetter(
+            resume_id=resume.id,
+            title=title,
+            company_name=company_name,
+            job_title=job_title,
+            content=ai_response.content,
+        )
+
+        return self.repository.create(
+            cover_letter,
+        )
+
+    def regenerate_cover_letter(
+        self,
+        *,
+        user_id: UUID,
+        cover_letter_id: UUID,
+        job_description: str,
+    ) -> CoverLetter:
+        cover_letter = self.get_cover_letter(
+            user_id=user_id,
+            cover_letter_id=cover_letter_id,
+        )
+
+        resume = self._verify_resume_owner(
+            resume_id=cover_letter.resume_id,
+            user_id=user_id,
+        )
+
+        ai_request = CoverLetterGenerationRequest(
+            company_name=cover_letter.company_name,
+            job_title=cover_letter.job_title,
+            job_description=job_description,
+            resume_content=ResumeFormatter.format(
+                resume,
+            ),
+        )
+
+        ai_response = self.ai_service.generate_cover_letter(
+            ai_request,
+        )
+
+        cover_letter.content = ai_response.content
+
+        return self.repository.update(
             cover_letter,
         )

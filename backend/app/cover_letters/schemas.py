@@ -51,3 +51,30 @@ class CoverLetterListResponse(BaseModel):
     )
 
     cover_letters: list[CoverLetterResponse]
+
+
+class CoverLetterGenerateRequest(BaseModel):
+    title: str = Field(
+        min_length=1,
+        max_length=255,
+    )
+
+    company_name: str = Field(
+        min_length=1,
+        max_length=255,
+    )
+
+    job_title: str = Field(
+        min_length=1,
+        max_length=255,
+    )
+
+    job_description: str = Field(
+        min_length=20,
+    )
+
+
+class CoverLetterRegenerateRequest(BaseModel):
+    job_description: str = Field(
+        min_length=20,
+    )

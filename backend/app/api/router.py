@@ -48,4 +48,3 @@ api_router.include_router(
 api_router.include_router(
     cover_letters_router,
 )
-
