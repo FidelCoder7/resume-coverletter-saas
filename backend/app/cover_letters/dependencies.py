@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.ai.dependencies import get_ai_service
 from app.ai.service import AIService
+from app.ai_usage.repository import AIUsageRepository
 from app.cover_letters.repository import CoverLetterRepository
 from app.cover_letters.service import CoverLetterService
 from app.database.session import get_db
@@ -15,9 +16,11 @@ def get_cover_letter_service(
 ) -> CoverLetterService:
     cover_letter_repository = CoverLetterRepository(db)
     resume_repository = ResumeRepository(db)
+    ai_usage_repository = AIUsageRepository(db)
 
     return CoverLetterService(
         repository=cover_letter_repository,
         resume_repository=resume_repository,
         ai_service=ai_service,
+        ai_usage_repository=ai_usage_repository,
     )

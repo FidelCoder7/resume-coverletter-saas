@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 
 if TYPE_CHECKING:
+    from app.ai_usage.models import AIUsage
     from app.resumes.models import Resume
 
 
@@ -53,4 +54,9 @@ class CoverLetter(Base):
             "title",
             name="uq_cover_letter_resume_title",
         ),
+    )
+
+    ai_usage: Mapped[list["AIUsage"]] = relationship(
+        "AIUsage",
+        back_populates="cover_letter",
     )

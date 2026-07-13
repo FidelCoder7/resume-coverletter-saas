@@ -8,6 +8,7 @@ from app.database.base import Base
 from app.skills.models import Skill
 
 if TYPE_CHECKING:
+    from app.ai_usage.models import AIUsage
     from app.certifications.models import Certification
     from app.cover_letters.models import CoverLetter
     from app.educations.models import Education
@@ -93,4 +94,9 @@ class Resume(Base):
             unique=True,
             postgresql_where=text("is_default = true"),
         ),
+    )
+
+    ai_usage: Mapped[list["AIUsage"]] = relationship(
+        "AIUsage",
+        back_populates="resume",
     )

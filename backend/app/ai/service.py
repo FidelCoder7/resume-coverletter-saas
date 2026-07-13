@@ -1,8 +1,6 @@
+from app.ai.contracts import AIExecutionResult
 from app.ai.providers import AIProvider
-from app.ai.schemas import (
-    CoverLetterGenerationRequest,
-    CoverLetterGenerationResponse,
-)
+from app.ai.schemas import CoverLetterGenerationRequest
 
 
 class AIService:
@@ -19,7 +17,7 @@ class AIService:
     def generate_cover_letter(
         self,
         request: CoverLetterGenerationRequest,
-    ) -> CoverLetterGenerationResponse:
+    ) -> AIExecutionResult[str]:
         """
         Generate a cover letter.
         """

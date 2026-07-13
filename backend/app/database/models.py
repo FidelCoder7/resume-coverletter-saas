@@ -5,6 +5,7 @@ Alembic imports this module to discover
 all SQLAlchemy metadata.
 """
 
+from app.ai_usage.models import AIUsage
 from app.certifications.models import Certification
 from app.cover_letters.models import CoverLetter
 from app.database.base import Base
@@ -19,6 +20,7 @@ from app.skills.models import Skill
 from app.users.models import User
 
 __all__ = (
+    "AIUsage",
     "Base",
     "Education",
     "Certification",

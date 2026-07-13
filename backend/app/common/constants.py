@@ -41,3 +41,15 @@ class SkillLevel(StrEnum):
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
     EXPERT = "expert"
+
+
+class AIFeature(StrEnum):
+    COVER_LETTER_GENERATION = "cover_letter_generation"
+    COVER_LETTER_REGENERATION = "cover_letter_regeneration"
+    RESUME_GENERATION = "resume_generation"
+
+
+class AIRequestStatus(StrEnum):
+    SUCCESS = "success"
+    FAILED = "failed"
+    CANCELLED = "cancelled"

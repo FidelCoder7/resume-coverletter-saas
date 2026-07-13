@@ -3,19 +3,9 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from app.certifications.models import Certification  # noqa: F401
 from app.core.config import settings
-from app.cover_letters.models import CoverLetter  # noqa: F401
+from app.database import models  # noqa: F401
 from app.database.base import Base
-from app.educations.models import Education  # noqa: F401
-from app.email_verification.models import EmailVerificationToken  # noqa: F401
-from app.experiences.models import Experience  # noqa: F401
-from app.password_reset.models import PasswordResetToken  # noqa: F401
-from app.projects.models import Project  # noqa: F401
-from app.refresh_tokens.models import RefreshToken  # noqa: F401
-from app.resumes.models import Resume  # noqa: F401
-from app.skills.models import Skill  # noqa: F401
-from app.users.models import User  # noqa: F401
 
 config = context.config
 

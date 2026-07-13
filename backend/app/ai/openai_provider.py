@@ -1,3 +1,5 @@
+from time import perf_counter
+
 from openai import (
     APITimeoutError,
     OpenAI,
@@ -5,6 +7,10 @@ from openai import (
     RateLimitError,
 )
 
+from app.ai.contracts import (
+    AIExecutionMetadata,
+    AIExecutionResult,
+)
 from app.ai.exceptions import (
     AIConfigurationError,
     AIGenerationError,
@@ -16,7 +22,6 @@ from app.ai.prompts import CoverLetterPromptBuilder
 from app.ai.providers import AIProvider
 from app.ai.schemas import (
     CoverLetterGenerationRequest,
-    CoverLetterGenerationResponse,
 )
 from app.core.config import settings
 
@@ -65,12 +70,14 @@ class OpenAIProvider(AIProvider):
     def generate_cover_letter(
         self,
         request: CoverLetterGenerationRequest,
-    ) -> CoverLetterGenerationResponse:
+    ) -> AIExecutionResult[str]:
         """
         Generate a cover letter using OpenAI.
         """
 
         try:
+            start = perf_counter()
+
             response = self.client.chat.completions.create(
                 model=settings.OPENAI_MODEL,
                 temperature=settings.OPENAI_TEMPERATURE,
@@ -79,6 +86,7 @@ class OpenAIProvider(AIProvider):
                     request,
                 ),
             )
+            latency_ms = int((perf_counter() - start) * 1000)
 
             if not response.choices:
                 raise AIGenerationError(
@@ -105,9 +113,19 @@ class OpenAIProvider(AIProvider):
                 raise AIGenerationError(
                     "The AI provider returned an empty response.",
                 )
+            usage = response.usage
 
-            return CoverLetterGenerationResponse(
+            return AIExecutionResult(
                 content=content,
+                metadata=AIExecutionMetadata(
+                    provider="openai",
+                    model=settings.OPENAI_MODEL,
+                    prompt_version="cover_letter_v1",
+                    prompt_tokens=(usage.prompt_tokens if usage else None),
+                    completion_tokens=(usage.completion_tokens if usage else None),
+                    total_tokens=(usage.total_tokens if usage else None),
+                    latency_ms=latency_ms,
+                ),
             )
 
         except APITimeoutError as exc:

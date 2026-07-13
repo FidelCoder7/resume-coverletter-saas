@@ -26,8 +26,8 @@ def build_request() -> CoverLetterGenerationRequest:
 
 def build_response(
     *,
-    content="Generated cover letter.",
-    finish_reason="stop",
+    content: str = "Generated cover letter.",
+    finish_reason: str = "stop",
 ):
     return SimpleNamespace(
         choices=[
@@ -38,6 +38,11 @@ def build_response(
                 ),
             ),
         ],
+        usage=SimpleNamespace(
+            prompt_tokens=120,
+            completion_tokens=180,
+            total_tokens=300,
+        ),
     )
 
 
@@ -65,6 +70,17 @@ def test_generate_cover_letter_success(
     )
 
     assert response.content == "Generated cover letter."
+
+    assert response.metadata.provider == "openai"
+    assert response.metadata.model == "gpt-5"
+    assert response.metadata.prompt_version == "cover_letter_v1"
+
+    assert response.metadata.prompt_tokens == 120
+    assert response.metadata.completion_tokens == 180
+    assert response.metadata.total_tokens == 300
+
+    assert response.metadata.latency_ms is not None
+    assert response.metadata.latency_ms >= 0
 
 
 @patch("app.ai.openai_provider.settings")

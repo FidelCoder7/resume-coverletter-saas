@@ -12,12 +12,13 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
+from app.ai.contracts import (
+    AIExecutionMetadata,
+    AIExecutionResult,
+)
 from app.ai.dependencies import get_ai_service
 from app.ai.providers import AIProvider
-from app.ai.schemas import (
-    CoverLetterGenerationRequest,
-    CoverLetterGenerationResponse,
-)
+from app.ai.schemas import CoverLetterGenerationRequest
 from app.ai.service import AIService
 from app.core.config import settings
 from app.core.rate_limit import limiter
@@ -46,9 +47,18 @@ class FakeAIProvider(AIProvider):
     def generate_cover_letter(
         self,
         request: CoverLetterGenerationRequest,
-    ) -> CoverLetterGenerationResponse:
-        return CoverLetterGenerationResponse(
-            content=("This is a generated cover letter for testing purposes."),
+    ) -> AIExecutionResult[str]:
+        return AIExecutionResult(
+            content="This is a generated cover letter for testing purposes.",
+            metadata=AIExecutionMetadata(
+                provider="fake",
+                model="fake-model",
+                prompt_version="test-v1",
+                prompt_tokens=100,
+                completion_tokens=150,
+                total_tokens=250,
+                latency_ms=50,
+            ),
         )
 
 

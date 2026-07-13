@@ -13,11 +13,3 @@ class CoverLetterGenerationRequest(BaseModel):
     job_description: str = Field(min_length=1)
 
     resume_content: str = Field(min_length=1)
-
-
-class CoverLetterGenerationResponse(BaseModel):
-    """
-    Internal AI response.
-    """
-
-    content: str

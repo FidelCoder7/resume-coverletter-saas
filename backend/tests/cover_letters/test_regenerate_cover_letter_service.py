@@ -1,11 +1,16 @@
+from uuid import uuid4
+
 import pytest
 
-from app.ai.providers import AIProvider
-from app.ai.schemas import (
-    CoverLetterGenerationRequest,
-    CoverLetterGenerationResponse,
+from app.ai.contracts import (
+    AIExecutionMetadata,
+    AIExecutionResult,
 )
+from app.ai.providers import AIProvider
+from app.ai.schemas import CoverLetterGenerationRequest
 from app.ai.service import AIService
+from app.ai_usage.models import AIUsage
+from app.ai_usage.repository import AIUsageRepository
 from app.cover_letters.exceptions import (
     CoverLetterAccessDenied,
     CoverLetterNotFound,
@@ -16,31 +21,56 @@ from app.resumes.repository import ResumeRepository
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
 
+DEFAULT_CONTENT = "Original cover letter."
+
 
 class FakeAIProvider(AIProvider):
+    """
+    Fake AI provider used by service tests.
+    """
+
     def generate_cover_letter(
         self,
         request: CoverLetterGenerationRequest,
-    ) -> CoverLetterGenerationResponse:
-        return CoverLetterGenerationResponse(
+    ) -> AIExecutionResult[str]:
+        return AIExecutionResult(
             content="Regenerated cover letter.",
+            metadata=AIExecutionMetadata(
+                provider="fake",
+                model="fake-model",
+                prompt_version="test-v1",
+                prompt_tokens=120,
+                completion_tokens=180,
+                total_tokens=300,
+                latency_ms=45,
+            ),
         )
 
 
-DEFAULT_CONTENT = (
-    "I am excited to apply for this opportunity because my "
-    "experience building production-ready backend systems "
-    "aligns well with your requirements."
-)
+def build_service(
+    db_session,
+) -> CoverLetterService:
+    repository = CoverLetterRepository(
+        db_session,
+    )
 
+    resume_repository = ResumeRepository(
+        db_session,
+    )
 
-def build_service(db_session):
+    ai_usage_repository = AIUsageRepository(
+        db_session,
+    )
+
+    ai_service = AIService(
+        provider=FakeAIProvider(),
+    )
+
     return CoverLetterService(
-        repository=CoverLetterRepository(db_session),
-        resume_repository=ResumeRepository(db_session),
-        ai_service=AIService(
-            provider=FakeAIProvider(),
-        ),
+        repository=repository,
+        resume_repository=resume_repository,
+        ai_service=ai_service,
+        ai_usage_repository=ai_usage_repository,
     )
 
 
@@ -86,12 +116,11 @@ def test_regenerate_cover_letter_success(
     regenerated = service.regenerate_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
-        job_description=("Looking for an experienced FastAPI backend engineer."),
+        job_description="Looking for an experienced FastAPI backend engineer.",
     )
 
     assert regenerated.id == cover_letter.id
-
-    assert regenerated.content == ("Regenerated cover letter.")
+    assert regenerated.content == "Regenerated cover letter."
 
 
 def test_regenerate_preserves_metadata(
@@ -120,20 +149,19 @@ def test_regenerate_preserves_metadata(
     regenerated = service.regenerate_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
-        job_description=("Backend engineer position."),
+        job_description="Backend engineer position.",
     )
 
+    assert regenerated.id == cover_letter.id
+    assert regenerated.resume_id == cover_letter.resume_id
     assert regenerated.title == cover_letter.title
     assert regenerated.company_name == cover_letter.company_name
     assert regenerated.job_title == cover_letter.job_title
-    assert regenerated.resume_id == cover_letter.resume_id
 
 
 def test_regenerate_unknown_cover_letter(
     db_session,
 ):
-    from uuid import uuid4
-
     user = create_user(
         db_session,
         verified=True,
@@ -186,6 +214,7 @@ def test_regenerate_other_users_cover_letter(
             job_description="Updated job description",
         )
 
+
 def test_regenerate_overwrites_existing_content(
     db_session,
 ):
@@ -214,12 +243,11 @@ def test_regenerate_overwrites_existing_content(
     regenerated = service.regenerate_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
-        job_description=("Backend engineer"),
+        job_description="Backend engineer",
     )
 
     assert regenerated.content != original
-
-    assert regenerated.content == ("Regenerated cover letter.")
+    assert regenerated.content == "Regenerated cover letter."
 
 
 def test_regenerate_updates_database(
@@ -256,4 +284,56 @@ def test_regenerate_updates_database(
         cover_letter_id=cover_letter.id,
     )
 
-    assert loaded.content == ("Regenerated cover letter.")
+    assert loaded.content == "Regenerated cover letter."
+
+
+def test_regenerate_cover_letter_records_ai_usage(
+    db_session,
+):
+    user = create_user(
+        db_session,
+        verified=True,
+    )
+
+    resume = create_resume(
+        db_session,
+        user_id=user.id,
+    )
+
+    service = build_service(
+        db_session,
+    )
+
+    cover_letter = service.generate_cover_letter(
+        user_id=user.id,
+        resume_id=resume.id,
+        title="Backend Engineer",
+        company_name="OpenAI",
+        job_title="Backend Engineer",
+        job_description="Initial job description.",
+    )
+
+    service.regenerate_cover_letter(
+        user_id=user.id,
+        cover_letter_id=cover_letter.id,
+        job_description="Updated job description.",
+    )
+
+    usages = db_session.query(AIUsage).order_by(AIUsage.created_at).all()
+
+    assert len(usages) == 2
+
+    latest = usages[-1]
+
+    assert latest.user_id == user.id
+    assert latest.resume_id == resume.id
+    assert latest.cover_letter_id == cover_letter.id
+
+    assert latest.provider == "fake"
+    assert latest.model == "fake-model"
+
+    assert latest.prompt_tokens == 120
+    assert latest.completion_tokens == 180
+    assert latest.total_tokens == 300
+
+    assert latest.status.value == "success"
