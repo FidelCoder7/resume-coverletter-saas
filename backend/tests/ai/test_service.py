@@ -6,7 +6,10 @@ from app.ai.contracts import (
 )
 from app.ai.exceptions import AIGenerationError
 from app.ai.providers import AIProvider
-from app.ai.schemas import CoverLetterGenerationRequest
+from app.ai.schemas import (
+    CoverLetterGenerationRequest,
+    ResumeGenerationRequest,
+)
 from app.ai.service import AIService
 
 
@@ -27,6 +30,23 @@ class SuccessfulProvider(AIProvider):
                 latency_ms=40,
             ),
         )
+    
+    def generate_resume(
+        self,
+        request: ResumeGenerationRequest,
+    ) -> AIExecutionResult[str]:
+        return AIExecutionResult(
+            content="Generated resume",
+            metadata=AIExecutionMetadata(
+                provider="fake",
+                model="fake-model",
+                prompt_version="test-v1",
+                prompt_tokens=1,
+                completion_tokens=1,
+                total_tokens=2,
+                latency_ms=1,
+            ),
+        )
 
 
 class FailingProvider(AIProvider):
@@ -37,6 +57,12 @@ class FailingProvider(AIProvider):
         raise AIGenerationError(
             "Generation failed.",
         )
+    
+    def generate_resume(
+        self,
+        request: ResumeGenerationRequest,
+    ) -> AIExecutionResult[str]:
+        raise NotImplementedError
 
 
 def build_request() -> CoverLetterGenerationRequest:

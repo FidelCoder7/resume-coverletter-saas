@@ -3,9 +3,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 
 from app.auth.dependencies import get_current_user
-from app.resumes.dependencies import get_resume_service
+from app.resumes.ai_service import ResumeAIService
+from app.resumes.dependencies import (
+    get_resume_ai_service,
+    get_resume_service,
+)
 from app.resumes.schemas import (
     CreateResumeRequest,
+    ResumeGenerationRequest,
     ResumeListResponse,
     ResumeResponse,
     UpdateResumeRequest,
@@ -61,6 +66,28 @@ def get_resume(
     return service.get_resume(
         user_id=current_user.id,
         resume_id=resume_id,
+    )
+
+
+@router.post(
+    "/{resume_id}/generate",
+    response_model=ResumeResponse,
+)
+def generate_resume(
+    resume_id: UUID,
+    payload: ResumeGenerationRequest,
+    current_user: User = Depends(get_current_user),
+    service: ResumeAIService = Depends(get_resume_ai_service),
+):
+    """
+    Generate or refresh the AI-rendered version of a resume.
+    """
+
+    return service.generate_resume(
+        user_id=current_user.id,
+        resume_id=resume_id,
+        target_job_title=payload.target_job_title,
+        job_description=payload.job_description,
     )
 
 

@@ -20,91 +20,9 @@ from app.resumes.models import Resume
 from app.resumes.repository import ResumeRepository
 
 
-class ResumeService:
-    """
-    Business logic for resume management.
-    """
-
-    def __init__(
-        self,
-        repository: ResumeRepository,
-    ):
-        self.repository = repository
-
-    def create_resume(
-        self,
-        *,
-        user_id: UUID,
-        title: str,
-        summary: str | None,
-    ) -> Resume:
-        resume = Resume(
-            user_id=user_id,
-            title=title,
-            summary=summary,
-        )
-
-        return self.repository.create(resume)
-
-    def list_resumes(
-        self,
-        user_id: UUID,
-    ) -> list[Resume]:
-        return self.repository.list_by_user(user_id)
-
-    def get_resume(
-        self,
-        *,
-        user_id: UUID,
-        resume_id: UUID,
-    ) -> Resume:
-        resume = self.repository.get_by_id(resume_id)
-
-        if resume is None:
-            raise ResumeNotFound("Resume not found.")
-
-        if resume.user_id != user_id:
-            raise ResumeAccessDenied(
-                "You do not have permission to access this resume."
-            )
-
-        return resume
-
-    def update_resume(
-        self,
-        *,
-        user_id: UUID,
-        resume_id: UUID,
-        title: str,
-        summary: str | None,
-    ) -> Resume:
-        resume = self.get_resume(
-            user_id=user_id,
-            resume_id=resume_id,
-        )
-
-        resume.title = title
-        resume.summary = summary
-
-        return self.repository.update(resume)
-
-    def delete_resume(
-        self,
-        *,
-        user_id: UUID,
-        resume_id: UUID,
-    ) -> None:
-        resume = self.get_resume(
-            user_id=user_id,
-            resume_id=resume_id,
-        )
-
-        self.repository.delete(resume)
-
-
 class ResumeAIService:
     """
-    Handles AI-powered resume generation.
+    Coordinates AI-powered resume generation.
     """
 
     def __init__(
@@ -112,17 +30,22 @@ class ResumeAIService:
         repository: ResumeRepository,
         ai_service: AIService,
         ai_usage_repository: AIUsageRepository,
-    ):
+    ) -> None:
         self.repository = repository
         self.ai_service = ai_service
         self.ai_usage_repository = ai_usage_repository
 
-    def _get_resume(
+    def _verify_resume_owner(
         self,
         *,
-        user_id: UUID,
         resume_id: UUID,
+        user_id: UUID,
     ) -> Resume:
+        """
+        Retrieve a resume with all related entities loaded and
+        verify ownership.
+        """
+
         resume = self.repository.get_for_generation(
             resume_id,
         )
@@ -146,6 +69,10 @@ class ResumeAIService:
         resume_id: UUID,
         result: AIExecutionResult[str],
     ) -> None:
+        """
+        Persist telemetry for a successful AI resume generation.
+        """
+
         metadata = result.metadata
 
         usage = AIUsage(
@@ -177,9 +104,13 @@ class ResumeAIService:
         target_job_title: str | None,
         job_description: str | None,
     ) -> Resume:
-        resume = self._get_resume(
-            user_id=user_id,
+        """
+        Generate or refresh the AI-rendered version of a resume.
+        """
+
+        resume = self._verify_resume_owner(
             resume_id=resume_id,
+            user_id=user_id,
         )
 
         ai_request = ResumeGenerationRequest(

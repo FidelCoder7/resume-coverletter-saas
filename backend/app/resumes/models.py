@@ -1,7 +1,17 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, Index, String, Text, false, text
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    false,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base
@@ -33,6 +43,16 @@ class Resume(Base):
 
     summary: Mapped[str | None] = mapped_column(
         Text,
+        nullable=True,
+    )
+
+    generated_content: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    generated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
         nullable=True,
     )
 

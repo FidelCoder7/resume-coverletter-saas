@@ -18,10 +18,14 @@ from app.ai.exceptions import (
     AIRateLimitError,
     AITimeoutError,
 )
-from app.ai.prompts import CoverLetterPromptBuilder
+from app.ai.prompts import (
+    CoverLetterPromptBuilder,
+    ResumePromptBuilder,
+)
 from app.ai.providers import AIProvider
 from app.ai.schemas import (
     CoverLetterGenerationRequest,
+    ResumeGenerationRequest,
 )
 from app.core.config import settings
 
@@ -44,35 +48,15 @@ class OpenAIProvider(AIProvider):
             timeout=settings.OPENAI_TIMEOUT,
         )
 
-    @staticmethod
-    def _build_messages(
-        request: CoverLetterGenerationRequest,
-    ) -> list[dict[str, str]]:
-        """
-        Build the OpenAI chat messages.
-        """
-
-        return [
-            {
-                "role": "system",
-                "content": (CoverLetterPromptBuilder.build_system_prompt()),
-            },
-            {
-                "role": "user",
-                "content": (
-                    CoverLetterPromptBuilder.build_user_prompt(
-                        request,
-                    )
-                ),
-            },
-        ]
-
-    def generate_cover_letter(
+    def _execute_generation(
         self,
-        request: CoverLetterGenerationRequest,
+        *,
+        messages: list[dict[str, str]],
+        prompt_version: str,
+        error_message: str,
     ) -> AIExecutionResult[str]:
         """
-        Generate a cover letter using OpenAI.
+        Execute a chat completion request.
         """
 
         try:
@@ -82,10 +66,9 @@ class OpenAIProvider(AIProvider):
                 model=settings.OPENAI_MODEL,
                 temperature=settings.OPENAI_TEMPERATURE,
                 max_tokens=settings.OPENAI_MAX_TOKENS,
-                messages=self._build_messages(
-                    request,
-                ),
+                messages=messages,
             )
+
             latency_ms = int((perf_counter() - start) * 1000)
 
             if not response.choices:
@@ -113,6 +96,7 @@ class OpenAIProvider(AIProvider):
                 raise AIGenerationError(
                     "The AI provider returned an empty response.",
                 )
+
             usage = response.usage
 
             return AIExecutionResult(
@@ -120,10 +104,10 @@ class OpenAIProvider(AIProvider):
                 metadata=AIExecutionMetadata(
                     provider="openai",
                     model=settings.OPENAI_MODEL,
-                    prompt_version="cover_letter_v1",
-                    prompt_tokens=(usage.prompt_tokens if usage else None),
-                    completion_tokens=(usage.completion_tokens if usage else None),
-                    total_tokens=(usage.total_tokens if usage else None),
+                    prompt_version=prompt_version,
+                    prompt_tokens=usage.prompt_tokens if usage else None,
+                    completion_tokens=usage.completion_tokens if usage else None,
+                    total_tokens=usage.total_tokens if usage else None,
                     latency_ms=latency_ms,
                 ),
             )
@@ -140,5 +124,75 @@ class OpenAIProvider(AIProvider):
 
         except OpenAIError as exc:
             raise AIProviderError(
-                "OpenAI failed to generate a cover letter.",
+                error_message,
             ) from exc
+
+    @staticmethod
+    def _build_cover_letter_messages(
+        request: CoverLetterGenerationRequest,
+    ) -> list[dict[str, str]]:
+        return [
+            {
+                "role": "system",
+                "content": (CoverLetterPromptBuilder.build_system_prompt()),
+            },
+            {
+                "role": "user",
+                "content": (
+                    CoverLetterPromptBuilder.build_user_prompt(
+                        request,
+                    )
+                ),
+            },
+        ]
+
+    @staticmethod
+    def _build_resume_messages(
+        request: ResumeGenerationRequest,
+    ) -> list[dict[str, str]]:
+        return [
+            {
+                "role": "system",
+                "content": (ResumePromptBuilder.build_system_prompt()),
+            },
+            {
+                "role": "user",
+                "content": (
+                    ResumePromptBuilder.build_user_prompt(
+                        request,
+                    )
+                ),
+            },
+        ]
+
+    def generate_cover_letter(
+        self,
+        request: CoverLetterGenerationRequest,
+    ) -> AIExecutionResult[str]:
+        """
+        Generate a cover letter using OpenAI.
+        """
+
+        return self._execute_generation(
+            messages=self._build_cover_letter_messages(
+                request,
+            ),
+            prompt_version="cover_letter_v1",
+            error_message="OpenAI failed to generate a cover letter.",
+        )
+
+    def generate_resume(
+        self,
+        request: ResumeGenerationRequest,
+    ) -> AIExecutionResult[str]:
+        """
+        Generate a resume using OpenAI.
+        """
+
+        return self._execute_generation(
+            messages=self._build_resume_messages(
+                request,
+            ),
+            prompt_version="resume_v1",
+            error_message="OpenAI failed to generate a resume.",
+        )

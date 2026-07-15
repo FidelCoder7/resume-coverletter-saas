@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 
 from app.ai.contracts import AIExecutionResult
-from app.ai.schemas import CoverLetterGenerationRequest
+from app.ai.schemas import (
+    CoverLetterGenerationRequest,
+    ResumeGenerationRequest,
+)
 
 
 class AIProvider(ABC):
@@ -16,5 +19,15 @@ class AIProvider(ABC):
     ) -> AIExecutionResult[str]:
         """
         Generate a cover letter.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def generate_resume(
+        self,
+        request: ResumeGenerationRequest,
+    ) -> AIExecutionResult[str]:
+        """
+        Generate a resume.
         """
         raise NotImplementedError

@@ -18,13 +18,20 @@ from app.ai.contracts import (
 )
 from app.ai.dependencies import get_ai_service
 from app.ai.providers import AIProvider
-from app.ai.schemas import CoverLetterGenerationRequest
+from app.ai.schemas import (
+    CoverLetterGenerationRequest,
+    ResumeGenerationRequest,
+)
 from app.ai.service import AIService
+from app.ai_usage.repository import AIUsageRepository
 from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.database.session import get_db
 from app.mail.service import MailService
 from app.main import app
+from app.resumes.ai_service import ResumeAIService
+from app.resumes.dependencies import get_resume_ai_service
+from app.resumes.repository import ResumeRepository
 
 engine = create_engine(
     settings.DATABASE_URL,
@@ -58,6 +65,23 @@ class FakeAIProvider(AIProvider):
                 completion_tokens=150,
                 total_tokens=250,
                 latency_ms=50,
+            ),
+        )
+
+    def generate_resume(
+        self,
+        request: ResumeGenerationRequest,
+    ) -> AIExecutionResult[str]:
+        return AIExecutionResult(
+            content="This is a generated resume for testing purposes.",
+            metadata=AIExecutionMetadata(
+                provider="fake",
+                model="fake-model",
+                prompt_version="test-v1",
+                prompt_tokens=120,
+                completion_tokens=180,
+                total_tokens=300,
+                latency_ms=45,
             ),
         )
 
@@ -175,8 +199,19 @@ def client(
     def override_get_ai_service():
         return fake_ai_service
 
+    def override_get_resume_ai_service():
+        repository = ResumeRepository(db_session)
+        ai_usage_repository = AIUsageRepository(db_session)
+
+        return ResumeAIService(
+            repository=repository,
+            ai_service=fake_ai_service,
+            ai_usage_repository=ai_usage_repository,
+        )
+
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_ai_service] = override_get_ai_service
+    app.dependency_overrides[get_resume_ai_service] = override_get_resume_ai_service
 
     limiter.enabled = False
 

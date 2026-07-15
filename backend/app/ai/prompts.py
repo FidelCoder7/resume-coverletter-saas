@@ -1,4 +1,7 @@
-from app.ai.schemas import CoverLetterGenerationRequest
+from app.ai.schemas import (
+    CoverLetterGenerationRequest,
+    ResumeGenerationRequest,
+)
 
 
 class CoverLetterPromptBuilder:
@@ -57,3 +60,76 @@ class CoverLetterPromptBuilder:
         - Do not use placeholders.
         - Return only the cover letter.
         """.strip()
+
+
+class ResumePromptBuilder:
+    """
+    Builds prompts used for AI resume generation.
+    """
+
+    @staticmethod
+    def build_system_prompt() -> str:
+        """
+        Return the system prompt.
+        """
+
+        return (
+            "You are an expert resume writer and ATS optimization specialist. "
+            "Rewrite the supplied resume into a professional, ATS-friendly "
+            "resume. Improve wording, grammar, readability, clarity, and "
+            "professional impact while preserving factual accuracy. "
+            "Do not invent experience, education, skills, certifications, "
+            "dates, employers, achievements, or technologies that are not "
+            "present in the supplied resume. Return only the completed resume."
+        )
+
+    @staticmethod
+    def build_user_prompt(
+        request: ResumeGenerationRequest,
+    ) -> str:
+        """
+        Build the user prompt.
+        """
+
+        sections = [
+            "Rewrite the following resume.",
+            "",
+            "Resume",
+            "",
+            request.resume_content,
+        ]
+
+        if request.target_job_title:
+            sections.extend(
+                [
+                    "",
+                    "Target Job Title",
+                    "",
+                    request.target_job_title,
+                ]
+            )
+
+        if request.job_description:
+            sections.extend(
+                [
+                    "",
+                    "Job Description",
+                    "",
+                    request.job_description,
+                ]
+            )
+
+        sections.extend(
+            [
+                "",
+                "Requirements",
+                "",
+                "- Improve wording and grammar.",
+                "- Improve ATS compatibility.",
+                "- Preserve all factual information.",
+                "- Do not invent qualifications or experience.",
+                "- Return only the completed resume.",
+            ]
+        )
+
+        return "\n".join(sections)

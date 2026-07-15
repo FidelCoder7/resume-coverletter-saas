@@ -7,7 +7,7 @@ from app.ai.contracts import (
     AIExecutionResult,
 )
 from app.ai.providers import AIProvider
-from app.ai.schemas import CoverLetterGenerationRequest
+from app.ai.schemas import CoverLetterGenerationRequest, ResumeGenerationRequest
 from app.ai.service import AIService
 from app.ai_usage.models import AIUsage
 from app.ai_usage.repository import AIUsageRepository
@@ -42,6 +42,23 @@ class FakeAIProvider(AIProvider):
                 completion_tokens=200,
                 total_tokens=300,
                 latency_ms=50,
+            ),
+        )
+
+    def generate_resume(
+        self,
+        request: ResumeGenerationRequest,
+    ) -> AIExecutionResult[str]:
+        return AIExecutionResult(
+            content="This is a generated resume used during testing.",
+            metadata=AIExecutionMetadata(
+                provider="fake",
+                model="fake-model",
+                prompt_version="test-v1",
+                prompt_tokens=120,
+                completion_tokens=240,
+                total_tokens=360,
+                latency_ms=40,
             ),
         )
 

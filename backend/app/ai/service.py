@@ -1,6 +1,9 @@
 from app.ai.contracts import AIExecutionResult
 from app.ai.providers import AIProvider
-from app.ai.schemas import CoverLetterGenerationRequest
+from app.ai.schemas import (
+    CoverLetterGenerationRequest,
+    ResumeGenerationRequest,
+)
 
 
 class AIService:
@@ -23,5 +26,17 @@ class AIService:
         """
 
         return self.provider.generate_cover_letter(
+            request,
+        )
+
+    def generate_resume(
+        self,
+        request: ResumeGenerationRequest,
+    ) -> AIExecutionResult[str]:
+        """
+        Generate a resume.
+        """
+
+        return self.provider.generate_resume(
             request,
         )

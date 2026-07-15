@@ -28,6 +28,22 @@ class UpdateResumeRequest(BaseModel):
     )
 
 
+class ResumeGenerationRequest(BaseModel):
+    """
+    Request payload for AI resume generation.
+    """
+
+    target_job_title: str | None = Field(
+        default=None,
+        max_length=255,
+    )
+
+    job_description: str | None = Field(
+        default=None,
+        max_length=10000,
+    )
+
+
 class ResumeResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -36,6 +52,9 @@ class ResumeResponse(BaseModel):
 
     title: str
     summary: str | None
+
+    generated_content: str | None
+    generated_at: datetime | None
 
     is_default: bool
 
