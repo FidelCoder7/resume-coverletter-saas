@@ -21,7 +21,10 @@ def build_config(
         max_tokens=1200,
         temperature=0.7,
         retry_attempts=3,
-        retry_backoff=1.0,
+        retry_initial_delay=1.0,
+        retry_backoff_multiplier=2.0,
+        retry_max_delay=8.0,
+        retry_jitter=False,
         resume_prompt_version="resume_v1",
         cover_letter_prompt_version="cover_letter_v1",
     )

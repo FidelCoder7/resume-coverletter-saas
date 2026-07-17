@@ -10,7 +10,14 @@ from app.ai.exceptions import (
 from app.ai.retry import RetryService
 
 
-def build_config() -> AISettings:
+def build_config(
+    *,
+    retry_attempts: int = 3,
+    retry_initial_delay: float = 1.0,
+    retry_backoff_multiplier: float = 2.0,
+    retry_max_delay: float = 8.0,
+    retry_jitter: bool = False,
+) -> AISettings:
     return AISettings(
         api_key="test-key",
         default_provider="openai",
@@ -18,8 +25,11 @@ def build_config() -> AISettings:
         timeout=60,
         max_tokens=1200,
         temperature=0.7,
-        retry_attempts=3,
-        retry_backoff=0,
+        retry_attempts=retry_attempts,
+        retry_initial_delay=retry_initial_delay,
+        retry_backoff_multiplier=retry_backoff_multiplier,
+        retry_max_delay=retry_max_delay,
+        retry_jitter=retry_jitter,
         resume_prompt_version="resume_v1",
         cover_letter_prompt_version="cover_letter_v1",
     )
@@ -187,3 +197,93 @@ def test_execute_passes_arguments():
     )
 
     assert result == 6
+
+def test_calculate_delay_is_exponential():
+    retry = RetryService(
+        config=build_config(),
+    )
+
+    assert retry._calculate_delay(1) == 1.0
+    assert retry._calculate_delay(2) == 2.0
+    assert retry._calculate_delay(3) == 4.0
+
+
+def test_calculate_delay_respects_max_delay():
+    retry = RetryService(
+        config=build_config(
+            retry_max_delay=3.0,
+        ),
+    )
+
+    assert retry._calculate_delay(1) == 1.0
+    assert retry._calculate_delay(2) == 2.0
+    assert retry._calculate_delay(3) == 3.0
+    assert retry._calculate_delay(4) == 3.0
+
+
+def test_apply_jitter_disabled_returns_same_delay():
+    retry = RetryService(
+        config=build_config(),
+    )
+
+    assert retry._apply_jitter(5.0) == 5.0
+
+
+def test_sleep_uses_injected_sleeper():
+    delays = []
+
+    retry = RetryService(
+        config=build_config(),
+        sleeper=delays.append,
+    )
+
+    retry._sleep(2.5)
+
+    assert delays == [2.5]
+
+
+def test_execute_uses_calculated_delay():
+    delays = []
+
+    retry = RetryService(
+        config=build_config(),
+        sleeper=delays.append,
+    )
+
+    calls = 0
+
+    def operation():
+        nonlocal calls
+        calls += 1
+
+        if calls < 3:
+            raise AIRateLimitError(
+                "retry",
+            )
+
+        return "ok"
+
+    assert retry.execute(operation) == "ok"
+
+    assert delays == [
+        1.0,
+        2.0,
+    ]
+
+
+def test_should_retry():
+    retry = RetryService(
+        config=build_config(),
+    )
+
+    assert retry._should_retry(
+        AIRateLimitError("x"),
+    )
+
+    assert retry._should_retry(
+        AIProviderError("x"),
+    )
+
+    assert not retry._should_retry(
+        AIGenerationError("x"),
+    )

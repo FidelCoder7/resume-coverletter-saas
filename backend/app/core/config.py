@@ -81,10 +81,22 @@ class Settings(BaseSettings):
         ge=1,
     )
 
-    AI_RETRY_BACKOFF: float = Field(
+    AI_RETRY_INITIAL_DELAY: float = Field(
         default=1.0,
         gt=0,
     )
+
+    AI_RETRY_BACKOFF_MULTIPLIER: float = Field(
+        default=2.0,
+        ge=1.0,
+    )
+
+    AI_RETRY_MAX_DELAY: float = Field(
+        default=8.0,
+        gt=0,
+    )
+
+    AI_RETRY_JITTER: bool = False
 
     AI_RESUME_PROMPT_VERSION: str = "resume_v1"
 

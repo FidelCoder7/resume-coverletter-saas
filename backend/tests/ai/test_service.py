@@ -93,6 +93,11 @@ def build_request() -> CoverLetterGenerationRequest:
         resume_content="Experienced FastAPI developer.",
     )
 
+def build_resume_request() -> ResumeGenerationRequest:
+    return ResumeGenerationRequest(
+        resume_content="Experienced FastAPI developer.",
+    )
+
 
 def build_retry_service() -> MagicMock:
     retry_service = MagicMock(
@@ -148,3 +153,91 @@ def test_generate_cover_letter_propagates_provider_exception():
         )
 
     retry_service.execute.assert_called_once()
+
+
+def test_generate_resume_success():
+    retry_service = build_retry_service()
+
+    service = AIService(
+        provider=SuccessfulProvider(),
+        retry_service=retry_service,
+    )
+
+    response = service.generate_resume(
+        build_resume_request(),
+    )
+
+    retry_service.execute.assert_called_once()
+
+    assert response.content == "Generated resume."
+
+    assert response.metadata.provider == "fake"
+    assert response.metadata.model == "fake-model"
+    assert response.metadata.prompt_version == "test-v1"
+    assert response.metadata.prompt_tokens == 1
+    assert response.metadata.completion_tokens == 1
+    assert response.metadata.total_tokens == 2
+    assert response.metadata.latency_ms == 1
+
+
+def test_generate_resume_propagates_provider_exception():
+    retry_service = build_retry_service()
+
+    service = AIService(
+        provider=FailingProvider(),
+        retry_service=retry_service,
+    )
+
+    with pytest.raises(
+        AIGenerationError,
+        match="Generation failed.",
+    ):
+        service.generate_resume(
+            build_resume_request(),
+        )
+
+    retry_service.execute.assert_called_once()
+
+
+def test_generate_cover_letter_without_retry_service():
+    service = AIService(
+        provider=SuccessfulProvider(),
+        retry_service=None,
+    )
+
+    response = service.generate_cover_letter(
+        build_request(),
+    )
+
+    assert response.content == "Generated cover letter."
+
+    assert response.metadata.provider == "fake"
+    assert response.metadata.model == "fake-model"
+    assert response.metadata.prompt_version == "test-v1"
+    assert response.metadata.prompt_tokens == 100
+    assert response.metadata.completion_tokens == 150
+    assert response.metadata.total_tokens == 250
+    assert response.metadata.latency_ms == 40
+
+
+def test_generate_resume_without_retry_service():
+    service = AIService(
+        provider=SuccessfulProvider(),
+        retry_service=None,
+    )
+
+    response = service.generate_resume(
+        build_resume_request(),
+    )
+
+    assert response.content == "Generated resume."
+
+    assert response.metadata.provider == "fake"
+    assert response.metadata.model == "fake-model"
+    assert response.metadata.prompt_version == "test-v1"
+    assert response.metadata.prompt_tokens == 1
+    assert response.metadata.completion_tokens == 1
+    assert response.metadata.total_tokens == 2
+    assert response.metadata.latency_ms == 1
+
+
