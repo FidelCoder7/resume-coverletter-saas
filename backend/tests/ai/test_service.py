@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pytest
 
 from app.ai.contracts import (
@@ -5,15 +7,25 @@ from app.ai.contracts import (
     AIExecutionResult,
 )
 from app.ai.exceptions import AIGenerationError
+from app.ai.provider_capabilities import ProviderCapabilities
 from app.ai.providers import AIProvider
+from app.ai.retry import RetryService
 from app.ai.schemas import (
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
 )
 from app.ai.service import AIService
 
+_CAPABILITIES = ProviderCapabilities()
+
 
 class SuccessfulProvider(AIProvider):
+    @property
+    def capabilities(
+        self,
+    ) -> ProviderCapabilities:
+        return _CAPABILITIES
+
     def generate_cover_letter(
         self,
         request: CoverLetterGenerationRequest,
@@ -30,13 +42,13 @@ class SuccessfulProvider(AIProvider):
                 latency_ms=40,
             ),
         )
-    
+
     def generate_resume(
         self,
         request: ResumeGenerationRequest,
     ) -> AIExecutionResult[str]:
         return AIExecutionResult(
-            content="Generated resume",
+            content="Generated resume.",
             metadata=AIExecutionMetadata(
                 provider="fake",
                 model="fake-model",
@@ -50,6 +62,12 @@ class SuccessfulProvider(AIProvider):
 
 
 class FailingProvider(AIProvider):
+    @property
+    def capabilities(
+        self,
+    ) -> ProviderCapabilities:
+        return _CAPABILITIES
+
     def generate_cover_letter(
         self,
         request: CoverLetterGenerationRequest,
@@ -57,12 +75,14 @@ class FailingProvider(AIProvider):
         raise AIGenerationError(
             "Generation failed.",
         )
-    
+
     def generate_resume(
         self,
         request: ResumeGenerationRequest,
     ) -> AIExecutionResult[str]:
-        raise NotImplementedError
+        raise AIGenerationError(
+            "Generation failed.",
+        )
 
 
 def build_request() -> CoverLetterGenerationRequest:
@@ -74,14 +94,31 @@ def build_request() -> CoverLetterGenerationRequest:
     )
 
 
+def build_retry_service() -> MagicMock:
+    retry_service = MagicMock(
+        spec=RetryService,
+    )
+
+    retry_service.execute.side_effect = lambda func, *args, **kwargs: func(
+        *args, **kwargs
+    )
+
+    return retry_service
+
+
 def test_generate_cover_letter_success():
+    retry_service = build_retry_service()
+
     service = AIService(
         provider=SuccessfulProvider(),
+        retry_service=retry_service,
     )
 
     response = service.generate_cover_letter(
         build_request(),
     )
+
+    retry_service.execute.assert_called_once()
 
     assert response.content == "Generated cover letter."
 
@@ -95,8 +132,11 @@ def test_generate_cover_letter_success():
 
 
 def test_generate_cover_letter_propagates_provider_exception():
+    retry_service = build_retry_service()
+
     service = AIService(
         provider=FailingProvider(),
+        retry_service=retry_service,
     )
 
     with pytest.raises(
@@ -106,3 +146,5 @@ def test_generate_cover_letter_propagates_provider_exception():
         service.generate_cover_letter(
             build_request(),
         )
+
+    retry_service.execute.assert_called_once()

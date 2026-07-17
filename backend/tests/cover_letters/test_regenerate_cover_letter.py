@@ -3,6 +3,7 @@ from tests.factories.user_factory import (
     DEFAULT_PASSWORD,
     create_user,
 )
+from tests.fakes.fake_ai_provider import GENERATED_COVER_LETTER
 from tests.utils import auth_headers, authenticated_user
 
 DEFAULT_CONTENT = (
@@ -72,7 +73,7 @@ def test_regenerate_cover_letter_success(
     assert data["company_name"] == "OpenAI"
     assert data["job_title"] == "Backend Engineer"
 
-    assert data["content"] == "This is a generated cover letter for testing purposes."
+    assert data["content"] == GENERATED_COVER_LETTER
 
 
 def test_regenerate_requires_authentication(

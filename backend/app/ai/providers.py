@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from app.ai.contracts import AIExecutionResult
+from app.ai.provider_capabilities import ProviderCapabilities
 from app.ai.schemas import (
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
@@ -8,9 +9,14 @@ from app.ai.schemas import (
 
 
 class AIProvider(ABC):
-    """
-    Abstract interface implemented by all AI providers.
-    """
+    @property
+    @abstractmethod
+    def capabilities(
+        self,
+    ) -> ProviderCapabilities:
+        """
+        Return the provider capabilities.
+        """
 
     @abstractmethod
     def generate_cover_letter(
@@ -20,7 +26,6 @@ class AIProvider(ABC):
         """
         Generate a cover letter.
         """
-        raise NotImplementedError
 
     @abstractmethod
     def generate_resume(
@@ -30,4 +35,3 @@ class AIProvider(ABC):
         """
         Generate a resume.
         """
-        raise NotImplementedError

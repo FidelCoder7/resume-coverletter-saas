@@ -12,16 +12,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
-from app.ai.contracts import (
-    AIExecutionMetadata,
-    AIExecutionResult,
-)
 from app.ai.dependencies import get_ai_service
-from app.ai.providers import AIProvider
-from app.ai.schemas import (
-    CoverLetterGenerationRequest,
-    ResumeGenerationRequest,
-)
 from app.ai.service import AIService
 from app.ai_usage.repository import AIUsageRepository
 from app.core.config import settings
@@ -32,6 +23,7 @@ from app.main import app
 from app.resumes.ai_service import ResumeAIService
 from app.resumes.dependencies import get_resume_ai_service
 from app.resumes.repository import ResumeRepository
+from tests.fakes.fake_ai_provider import FakeAIProvider
 
 engine = create_engine(
     settings.DATABASE_URL,
@@ -44,46 +36,6 @@ TestingSessionLocal = sessionmaker(
     autocommit=False,
     expire_on_commit=False,
 )
-
-
-class FakeAIProvider(AIProvider):
-    """
-    Fake AI provider used during tests.
-    """
-
-    def generate_cover_letter(
-        self,
-        request: CoverLetterGenerationRequest,
-    ) -> AIExecutionResult[str]:
-        return AIExecutionResult(
-            content="This is a generated cover letter for testing purposes.",
-            metadata=AIExecutionMetadata(
-                provider="fake",
-                model="fake-model",
-                prompt_version="test-v1",
-                prompt_tokens=100,
-                completion_tokens=150,
-                total_tokens=250,
-                latency_ms=50,
-            ),
-        )
-
-    def generate_resume(
-        self,
-        request: ResumeGenerationRequest,
-    ) -> AIExecutionResult[str]:
-        return AIExecutionResult(
-            content="This is a generated resume for testing purposes.",
-            metadata=AIExecutionMetadata(
-                provider="fake",
-                model="fake-model",
-                prompt_version="test-v1",
-                prompt_tokens=120,
-                completion_tokens=180,
-                total_tokens=300,
-                latency_ms=45,
-            ),
-        )
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -3,12 +3,6 @@ from uuid import uuid4
 
 import pytest
 
-from app.ai.contracts import (
-    AIExecutionMetadata,
-    AIExecutionResult,
-)
-from app.ai.providers import AIProvider
-from app.ai.schemas import ResumeGenerationRequest
 from app.ai.service import AIService
 from app.ai_usage.models import AIUsage
 from app.ai_usage.repository import AIUsageRepository
@@ -20,49 +14,7 @@ from app.resumes.repository import ResumeRepository
 from app.resumes.service import ResumeAIService
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
-
-
-class FakeAIProvider(AIProvider):
-    """
-    Fake AI provider used by service tests.
-    """
-
-    def generate_cover_letter(
-        self,
-        request,
-    ) -> AIExecutionResult[str]:
-        return AIExecutionResult(
-            content="unused",
-            metadata=AIExecutionMetadata(
-                provider="fake",
-                model="fake-model",
-                prompt_version="unused",
-                prompt_tokens=0,
-                completion_tokens=0,
-                total_tokens=0,
-                latency_ms=0,
-            ),
-        )
-
-    def generate_resume(
-        self,
-        request: ResumeGenerationRequest,
-    ) -> AIExecutionResult[str]:
-        return AIExecutionResult(
-            content=(
-                "Professional Python Backend Engineer\n\n"
-                "Experienced FastAPI developer with strong API design skills."
-            ),
-            metadata=AIExecutionMetadata(
-                provider="fake",
-                model="fake-model",
-                prompt_version="resume-v1",
-                prompt_tokens=120,
-                completion_tokens=180,
-                total_tokens=300,
-                latency_ms=45,
-            ),
-        )
+from tests.fakes.fake_ai_provider import FakeAIProvider
 
 
 @pytest.fixture()
