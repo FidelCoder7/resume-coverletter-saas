@@ -2,12 +2,6 @@ from uuid import uuid4
 
 import pytest
 
-from app.ai.contracts import (
-    AIExecutionMetadata,
-    AIExecutionResult,
-)
-from app.ai.providers import AIProvider
-from app.ai.schemas import CoverLetterGenerationRequest, ResumeGenerationRequest
 from app.ai.service import AIService
 from app.ai_usage.models import AIUsage
 from app.ai_usage.repository import AIUsageRepository
@@ -20,48 +14,10 @@ from app.cover_letters.service import CoverLetterService
 from app.resumes.repository import ResumeRepository
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
+from tests.fakes.fake_ai_provider import GENERATED_COVER_LETTER, FakeAIProvider
 
 DEFAULT_CONTENT = "Original cover letter."
 
-
-class FakeAIProvider(AIProvider):
-    """
-    Fake AI provider used by service tests.
-    """
-
-    def generate_cover_letter(
-        self,
-        request: CoverLetterGenerationRequest,
-    ) -> AIExecutionResult[str]:
-        return AIExecutionResult(
-            content="Regenerated cover letter.",
-            metadata=AIExecutionMetadata(
-                provider="fake",
-                model="fake-model",
-                prompt_version="test-v1",
-                prompt_tokens=120,
-                completion_tokens=180,
-                total_tokens=300,
-                latency_ms=45,
-            ),
-        )
-    
-    def generate_resume(
-        self,
-        request: ResumeGenerationRequest,
-    ) -> AIExecutionResult[str]:
-        return AIExecutionResult(
-            content="Generated resume",
-            metadata=AIExecutionMetadata(
-                provider="fake",
-                model="fake-model",
-                prompt_version="test-v1",
-                prompt_tokens=100,
-                completion_tokens=100,
-                total_tokens=200,
-                latency_ms=50,
-            ),
-        )
 
 
 def build_service(
@@ -137,7 +93,9 @@ def test_regenerate_cover_letter_success(
     )
 
     assert regenerated.id == cover_letter.id
-    assert regenerated.content == "Regenerated cover letter."
+    assert (
+        regenerated.content == GENERATED_COVER_LETTER
+    )
 
 
 def test_regenerate_preserves_metadata(
@@ -264,7 +222,9 @@ def test_regenerate_overwrites_existing_content(
     )
 
     assert regenerated.content != original
-    assert regenerated.content == "Regenerated cover letter."
+    assert (
+        regenerated.content == GENERATED_COVER_LETTER
+    )
 
 
 def test_regenerate_updates_database(
@@ -301,7 +261,7 @@ def test_regenerate_updates_database(
         cover_letter_id=cover_letter.id,
     )
 
-    assert loaded.content == "Regenerated cover letter."
+    assert loaded.content == GENERATED_COVER_LETTER
 
 
 def test_regenerate_cover_letter_records_ai_usage(
@@ -350,7 +310,7 @@ def test_regenerate_cover_letter_records_ai_usage(
     assert latest.model == "fake-model"
 
     assert latest.prompt_tokens == 120
-    assert latest.completion_tokens == 180
-    assert latest.total_tokens == 300
+    assert latest.completion_tokens == 240
+    assert latest.total_tokens == 360
 
     assert latest.status.value == "success"

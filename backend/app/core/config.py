@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     # AI Configuration
     #
 
+    AI_DEFAULT_PROVIDER: str = "openai"
+
     OPENAI_API_KEY: str | None = None
 
     OPENAI_MODEL: str = "gpt-5"
@@ -73,6 +75,20 @@ class Settings(BaseSettings):
         ge=0.0,
         le=2.0,
     )
+
+    AI_RETRY_ATTEMPTS: int = Field(
+        default=3,
+        ge=1,
+    )
+
+    AI_RETRY_BACKOFF: float = Field(
+        default=1.0,
+        gt=0,
+    )
+
+    AI_RESUME_PROMPT_VERSION: str = "resume_v1"
+
+    AI_COVER_LETTER_PROMPT_VERSION: str = "cover_letter_v1"
 
     model_config = SettingsConfigDict(
         env_file=os.getenv(

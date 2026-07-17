@@ -2,12 +2,6 @@ from uuid import uuid4
 
 import pytest
 
-from app.ai.contracts import (
-    AIExecutionMetadata,
-    AIExecutionResult,
-)
-from app.ai.providers import AIProvider
-from app.ai.schemas import CoverLetterGenerationRequest, ResumeGenerationRequest
 from app.ai.service import AIService
 from app.ai_usage.models import AIUsage
 from app.ai_usage.repository import AIUsageRepository
@@ -21,46 +15,7 @@ from app.cover_letters.service import CoverLetterService
 from app.resumes.repository import ResumeRepository
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
-
-
-class FakeAIProvider(AIProvider):
-    """
-    Fake AI provider used by service tests.
-    """
-
-    def generate_cover_letter(
-        self,
-        request: CoverLetterGenerationRequest,
-    ) -> AIExecutionResult[str]:
-        return AIExecutionResult(
-            content="This is a generated cover letter used during testing.",
-            metadata=AIExecutionMetadata(
-                provider="fake",
-                model="fake-model",
-                prompt_version="test-v1",
-                prompt_tokens=100,
-                completion_tokens=200,
-                total_tokens=300,
-                latency_ms=50,
-            ),
-        )
-
-    def generate_resume(
-        self,
-        request: ResumeGenerationRequest,
-    ) -> AIExecutionResult[str]:
-        return AIExecutionResult(
-            content="This is a generated resume used during testing.",
-            metadata=AIExecutionMetadata(
-                provider="fake",
-                model="fake-model",
-                prompt_version="test-v1",
-                prompt_tokens=120,
-                completion_tokens=240,
-                total_tokens=360,
-                latency_ms=40,
-            ),
-        )
+from tests.fakes.fake_ai_provider import GENERATED_COVER_LETTER, FakeAIProvider
 
 
 @pytest.fixture()
@@ -105,9 +60,7 @@ def test_generate_cover_letter(service, db_session):
     assert cover_letter.title == "Backend Engineer"
     assert cover_letter.company_name == "OpenAI"
     assert cover_letter.job_title == "Backend Engineer"
-    assert (
-        cover_letter.content == "This is a generated cover letter used during testing."
-    )
+    assert cover_letter.content == GENERATED_COVER_LETTER
 
 
 def test_generate_cover_letter_unknown_resume(service, db_session):
@@ -248,8 +201,8 @@ def test_generate_cover_letter_records_ai_usage(
     assert usage.provider == "fake"
     assert usage.model == "fake-model"
 
-    assert usage.prompt_tokens == 100
-    assert usage.completion_tokens == 200
-    assert usage.total_tokens == 300
+    assert usage.prompt_tokens == 120
+    assert usage.completion_tokens == 240
+    assert usage.total_tokens == 360
 
     assert usage.status.value == "success"

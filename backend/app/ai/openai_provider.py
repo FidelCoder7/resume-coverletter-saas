@@ -1,169 +1,89 @@
-from time import perf_counter
+from openai import OpenAI
 
-from openai import (
-    APITimeoutError,
-    OpenAI,
-    OpenAIError,
-    RateLimitError,
-)
-
-from app.ai.contracts import (
-    AIExecutionMetadata,
-    AIExecutionResult,
-)
-from app.ai.exceptions import (
-    AIConfigurationError,
-    AIGenerationError,
-    AIProviderError,
-    AIRateLimitError,
-    AITimeoutError,
-)
-from app.ai.prompts import (
-    CoverLetterPromptBuilder,
-    ResumePromptBuilder,
-)
+from app.ai.base_chat_provider import BaseChatProvider
+from app.ai.config import AISettings
+from app.ai.contracts import AIExecutionResult
+from app.ai.exceptions import AIConfigurationError
+from app.ai.prompt_service import PromptService
+from app.ai.provider_capabilities import ProviderCapabilities
 from app.ai.providers import AIProvider
 from app.ai.schemas import (
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
 )
-from app.core.config import settings
+
+_CAPABILITIES = ProviderCapabilities(
+    supports_cover_letters=True,
+    supports_resume_generation=True,
+    supports_streaming=False,
+    supports_json_mode=False,
+    supports_vision=False,
+)
 
 
-class OpenAIProvider(AIProvider):
+class OpenAIProvider(
+    BaseChatProvider,
+    AIProvider,
+):
     """
     OpenAI implementation of the AIProvider interface.
     """
 
-    def __init__(self) -> None:
-        api_key = settings.OPENAI_API_KEY
+    def __init__(
+        self,
+        config: AISettings,
+    ) -> None:
+        self.config = config
 
-        if not api_key:
+        if not config.api_key:
             raise AIConfigurationError(
                 "OPENAI_API_KEY is not configured.",
             )
 
         self.client = OpenAI(
-            api_key=api_key,
-            timeout=settings.OPENAI_TIMEOUT,
+            api_key=config.api_key,
+            timeout=config.timeout,
         )
 
-    def _execute_generation(
+    @property
+    def capabilities(
+        self,
+    ) -> ProviderCapabilities:
+        return _CAPABILITIES
+
+    def create_completion(
         self,
         *,
         messages: list[dict[str, str]],
-        prompt_version: str,
-        error_message: str,
-    ) -> AIExecutionResult[str]:
+    ):
         """
-        Execute a chat completion request.
+        Execute an OpenAI chat completion request.
         """
 
-        try:
-            start = perf_counter()
+        return self.client.chat.completions.create(
+            model=self.config.default_model,
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
+            messages=messages,
+        )
 
-            response = self.client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
-                temperature=settings.OPENAI_TEMPERATURE,
-                max_tokens=settings.OPENAI_MAX_TOKENS,
-                messages=messages,
-            )
+    def get_provider_name(
+        self,
+    ) -> str:
+        """
+        Return the provider identifier.
+        """
 
-            latency_ms = int((perf_counter() - start) * 1000)
+        return "openai"
 
-            if not response.choices:
-                raise AIGenerationError(
-                    "The AI provider returned no choices.",
-                )
+    def get_model_name(
+        self,
+    ) -> str:
+        """
+        Return the configured model.
+        """
 
-            choice = response.choices[0]
-
-            if choice.finish_reason == "length":
-                raise AIGenerationError(
-                    "The AI response exceeded the configured token limit.",
-                )
-
-            message = choice.message
-
-            if message is None or message.content is None:
-                raise AIGenerationError(
-                    "The AI provider returned an empty response.",
-                )
-
-            content = message.content.strip()
-
-            if not content:
-                raise AIGenerationError(
-                    "The AI provider returned an empty response.",
-                )
-
-            usage = response.usage
-
-            return AIExecutionResult(
-                content=content,
-                metadata=AIExecutionMetadata(
-                    provider="openai",
-                    model=settings.OPENAI_MODEL,
-                    prompt_version=prompt_version,
-                    prompt_tokens=usage.prompt_tokens if usage else None,
-                    completion_tokens=usage.completion_tokens if usage else None,
-                    total_tokens=usage.total_tokens if usage else None,
-                    latency_ms=latency_ms,
-                ),
-            )
-
-        except APITimeoutError as exc:
-            raise AITimeoutError(
-                "The AI request timed out.",
-            ) from exc
-
-        except RateLimitError as exc:
-            raise AIRateLimitError(
-                "The AI provider rate limit has been exceeded.",
-            ) from exc
-
-        except OpenAIError as exc:
-            raise AIProviderError(
-                error_message,
-            ) from exc
-
-    @staticmethod
-    def _build_cover_letter_messages(
-        request: CoverLetterGenerationRequest,
-    ) -> list[dict[str, str]]:
-        return [
-            {
-                "role": "system",
-                "content": (CoverLetterPromptBuilder.build_system_prompt()),
-            },
-            {
-                "role": "user",
-                "content": (
-                    CoverLetterPromptBuilder.build_user_prompt(
-                        request,
-                    )
-                ),
-            },
-        ]
-
-    @staticmethod
-    def _build_resume_messages(
-        request: ResumeGenerationRequest,
-    ) -> list[dict[str, str]]:
-        return [
-            {
-                "role": "system",
-                "content": (ResumePromptBuilder.build_system_prompt()),
-            },
-            {
-                "role": "user",
-                "content": (
-                    ResumePromptBuilder.build_user_prompt(
-                        request,
-                    )
-                ),
-            },
-        ]
+        return self.config.default_model
 
     def generate_cover_letter(
         self,
@@ -173,11 +93,12 @@ class OpenAIProvider(AIProvider):
         Generate a cover letter using OpenAI.
         """
 
-        return self._execute_generation(
-            messages=self._build_cover_letter_messages(
+        return self.execute_generation(
+            messages=PromptService.build_cover_letter_messages(
                 request,
+                version=self.config.cover_letter_prompt_version,
             ),
-            prompt_version="cover_letter_v1",
+            prompt_version=self.config.cover_letter_prompt_version,
             error_message="OpenAI failed to generate a cover letter.",
         )
 
@@ -189,10 +110,11 @@ class OpenAIProvider(AIProvider):
         Generate a resume using OpenAI.
         """
 
-        return self._execute_generation(
-            messages=self._build_resume_messages(
+        return self.execute_generation(
+            messages=PromptService.build_resume_messages(
                 request,
+                version=self.config.resume_prompt_version,
             ),
-            prompt_version="resume_v1",
+            prompt_version=self.config.resume_prompt_version,
             error_message="OpenAI failed to generate a resume.",
         )
