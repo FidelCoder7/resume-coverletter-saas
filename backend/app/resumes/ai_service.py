@@ -1,16 +1,13 @@
 from datetime import UTC, datetime
-from decimal import Decimal
 from uuid import UUID
 
 from app.ai.contracts import AIExecutionResult
 from app.ai.formatters import ResumeFormatter
 from app.ai.schemas import ResumeGenerationRequest
 from app.ai.service import AIService
-from app.ai_usage.models import AIUsage
-from app.ai_usage.repository import AIUsageRepository
+from app.ai_usage.service import AIUsageService
 from app.common.constants import (
     AIFeature,
-    AIRequestStatus,
 )
 from app.resumes.exceptions import (
     ResumeAccessDenied,
@@ -29,11 +26,11 @@ class ResumeAIService:
         self,
         repository: ResumeRepository,
         ai_service: AIService,
-        ai_usage_repository: AIUsageRepository,
+        ai_usage_service: AIUsageService,
     ) -> None:
         self.repository = repository
         self.ai_service = ai_service
-        self.ai_usage_repository = ai_usage_repository
+        self.ai_usage_service = ai_usage_service
 
     def _verify_resume_owner(
         self,
@@ -73,27 +70,11 @@ class ResumeAIService:
         Persist telemetry for a successful AI resume generation.
         """
 
-        metadata = result.metadata
-
-        usage = AIUsage(
+        self.ai_usage_service.record_success(
             user_id=user_id,
             resume_id=resume_id,
-            cover_letter_id=None,
             feature=AIFeature.RESUME_GENERATION,
-            provider=metadata.provider,
-            model=metadata.model,
-            prompt_version=metadata.prompt_version,
-            prompt_tokens=metadata.prompt_tokens,
-            completion_tokens=metadata.completion_tokens,
-            total_tokens=metadata.total_tokens,
-            estimated_cost=Decimal("0"),
-            latency_ms=metadata.latency_ms,
-            status=AIRequestStatus.SUCCESS,
-            error_message=None,
-        )
-
-        self.ai_usage_repository.create(
-            usage,
+            metadata=result.metadata,
         )
 
     def generate_resume(
@@ -121,9 +102,23 @@ class ResumeAIService:
             job_description=job_description,
         )
 
-        ai_result = self.ai_service.generate_resume(
-            ai_request,
-        )
+        try:
+            ai_result = self.ai_service.generate_resume(
+                ai_request,
+                user_id=user_id,
+                resume_id=resume_id,
+            )
+
+        except Exception as exc:
+            self.ai_usage_service.record_failure(
+                user_id=user_id,
+                resume_id=resume.id,
+                feature=AIFeature.RESUME_GENERATION,
+                metadata=self.ai_service.provider.execution_metadata(),
+                error_message=str(exc),
+            )
+
+            raise
 
         resume.generated_content = ai_result.content
         resume.generated_at = datetime.now(

@@ -58,12 +58,12 @@ class FakeChatProvider(BaseChatProvider):
 
         return self.response
 
-    def get_provider_name(
+    def provider_name(
         self,
     ) -> str:
         return "fake"
 
-    def get_model_name(
+    def model_name(
         self,
     ) -> str:
         return "fake-model"

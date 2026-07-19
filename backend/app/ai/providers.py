@@ -9,6 +9,28 @@ from app.ai.schemas import (
 
 
 class AIProvider(ABC):
+
+    @property
+    @abstractmethod
+    def provider_name(self) -> str:
+        """
+        Human-readable provider identifier.
+        """
+
+    @property
+    @abstractmethod
+    def model_name(self) -> str:
+        """
+        Default model used by this provider.
+        """
+
+    @property
+    @abstractmethod
+    def prompt_version(self) -> str:
+        """
+        Current prompt version used by this provider.
+        """
+
     @property
     @abstractmethod
     def capabilities(

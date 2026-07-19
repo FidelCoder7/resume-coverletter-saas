@@ -67,7 +67,8 @@ class OpenAIProvider(
             messages=messages,
         )
 
-    def get_provider_name(
+    @property
+    def provider_name(
         self,
     ) -> str:
         """
@@ -76,7 +77,8 @@ class OpenAIProvider(
 
         return "openai"
 
-    def get_model_name(
+    @property
+    def model_name(
         self,
     ) -> str:
         """
@@ -84,6 +86,13 @@ class OpenAIProvider(
         """
 
         return self.config.default_model
+
+    @property
+    def prompt_version(self) -> str:
+        """
+        Default prompt version exposed by this provider.
+        """
+        return self.config.resume_prompt_version
 
     def generate_cover_letter(
         self,

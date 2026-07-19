@@ -11,19 +11,19 @@ _PROVIDER = "fake"
 _MODEL = "fake-model"
 _PROMPT_VERSION = "test-v1"
 
-GENERATED_COVER_LETTER = (
-    "This is a generated cover letter for testing purposes."
-)
+GENERATED_COVER_LETTER = "This is a generated cover letter for testing purposes."
 
 GENERATED_RESUME = (
     "Professional Python Backend Engineer\n\n"
     "Experienced FastAPI developer with strong API design skills."
 )
 
+
 class FakeAIProvider(AIProvider):
     """
     Fake AI provider used by service tests.
     """
+
     def _metadata(
         *,
         prompt_tokens: int,
@@ -40,13 +40,24 @@ class FakeAIProvider(AIProvider):
             total_tokens=total_tokens,
             latency_ms=latency_ms,
         )
-    
 
     @property
     def capabilities(
         self,
     ) -> ProviderCapabilities:
         return _CAPABILITIES
+
+    @property
+    def provider_name(self) -> str:
+        return "openai"
+
+    @property
+    def model_name(self) -> str:
+        return "gpt-5"
+
+    @property
+    def prompt_version(self) -> str:
+        return "v1"
 
     def generate_cover_letter(
         self,

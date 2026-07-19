@@ -35,7 +35,7 @@ class BaseChatProvider(ABC):
         """
 
     @abstractmethod
-    def get_provider_name(
+    def provider_name(
         self,
     ) -> str:
         """
@@ -43,7 +43,7 @@ class BaseChatProvider(ABC):
         """
 
     @abstractmethod
-    def get_model_name(
+    def model_name(
         self,
     ) -> str:
         """
@@ -103,8 +103,8 @@ class BaseChatProvider(ABC):
             return AIExecutionResult(
                 content=content,
                 metadata=AIExecutionMetadata(
-                    provider=self.get_provider_name(),
-                    model=self.get_model_name(),
+                    provider=self.provider_name(),
+                    model=self.model_name(),
                     prompt_version=prompt_version,
                     prompt_tokens=usage.prompt_tokens if usage else None,
                     completion_tokens=usage.completion_tokens if usage else None,

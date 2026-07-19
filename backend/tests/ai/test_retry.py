@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pytest
 
 from app.ai.config import AISettings
@@ -198,6 +200,7 @@ def test_execute_passes_arguments():
 
     assert result == 6
 
+
 def test_calculate_delay_is_exponential():
     retry = RetryService(
         config=build_config(),
@@ -287,3 +290,113 @@ def test_should_retry():
     assert not retry._should_retry(
         AIGenerationError("x"),
     )
+
+
+def test_execute_calls_on_retry_before_each_retry():
+    retry = RetryService(
+        config=build_config(),
+        sleeper=lambda _: None,
+    )
+
+    callback = MagicMock()
+
+    calls = 0
+
+    def operation():
+        nonlocal calls
+        calls += 1
+
+        if calls < 3:
+            raise AIRateLimitError("retry")
+
+        return "ok"
+
+    assert (
+        retry.execute(
+            operation,
+            on_retry=callback,
+        )
+        == "ok"
+    )
+
+    assert callback.call_count == 2
+
+
+def test_execute_passes_attempt_number_to_callback():
+    retry = RetryService(
+        config=build_config(),
+        sleeper=lambda _: None,
+    )
+
+    attempts = []
+
+    calls = 0
+
+    def operation():
+        nonlocal calls
+        calls += 1
+
+        if calls < 3:
+            raise AIRateLimitError("retry")
+
+        return "ok"
+
+    def on_retry(attempt: int, delay: float):
+        attempts.append(attempt)
+
+    retry.execute(
+        operation,
+        on_retry=on_retry,
+    )
+
+    assert attempts == [
+        1,
+        2,
+    ]
+
+
+def test_execute_passes_calculated_delay_to_callback():
+    retry = RetryService(
+        config=build_config(),
+        sleeper=lambda _: None,
+    )
+
+    events = []
+
+    calls = 0
+
+    def operation():
+        nonlocal calls
+        calls += 1
+
+        if calls < 3:
+            raise AIRateLimitError("retry")
+
+        return "ok"
+
+    def on_retry(
+        attempt: int,
+        delay: float,
+    ):
+        events.append(
+            (
+                attempt,
+                delay,
+            ),
+        )
+
+    retry.execute(
+        operation,
+        on_retry=on_retry,
+    )
+
+    assert events == [
+        (
+            1,
+            1.0,
+        ),
+        (
+            2,
+            2.0,
+        ),
+    ]

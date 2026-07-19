@@ -22,9 +22,7 @@ class RetryService:
     validation, and generation failures are immediately propagated.
     """
 
-    RETRYABLE_EXCEPTIONS = (
-        AIProviderError,
-    )
+    RETRYABLE_EXCEPTIONS = (AIProviderError,)
 
     NON_RETRYABLE_EXCEPTIONS = (
         AIConfigurationError,
@@ -45,6 +43,7 @@ class RetryService:
         self,
         operation: Callable[P, T],
         *args: P.args,
+        on_retry: Callable[[int, float], None] | None = None,
         **kwargs: P.kwargs,
     ) -> T:
         """
@@ -60,7 +59,7 @@ class RetryService:
                     **kwargs,
                 )
 
-            except self.NON_RETRYABLE_EXCEPTIONS :
+            except self.NON_RETRYABLE_EXCEPTIONS:
                 raise
 
             except self.RETRYABLE_EXCEPTIONS as exc:
@@ -78,6 +77,9 @@ class RetryService:
                     delay,
                 )
 
+                if on_retry is not None:
+                    on_retry(attempt, delay)
+
                 self._sleep(
                     delay,
                 )
@@ -85,6 +87,7 @@ class RetryService:
         raise RuntimeError(
             "Retry policy exhausted unexpectedly.",
         )
+
     def _should_retry(
         self,
         exc: Exception,
@@ -99,25 +102,20 @@ class RetryService:
             exc,
             self.RETRYABLE_EXCEPTIONS,
         )
-        
 
     def _calculate_delay(
         self,
         attempt: int,
     ) -> float:
-        delay = (
-            self.config.retry_initial_delay
-            * (
-                self.config.retry_backoff_multiplier
-                ** (attempt - 1)
-            )
+        delay = self.config.retry_initial_delay * (
+            self.config.retry_backoff_multiplier ** (attempt - 1)
         )
 
         return min(
             delay,
             self.config.retry_max_delay,
-        )  
-    
+        )
+
     def _apply_jitter(
         self,
         delay: float,
@@ -129,7 +127,6 @@ class RetryService:
             delay * 0.8,
             delay * 1.2,
         )
-    
 
     def _sleep(
         self,

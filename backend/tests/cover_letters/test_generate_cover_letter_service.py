@@ -5,13 +5,14 @@ import pytest
 from app.ai.service import AIService
 from app.ai_usage.models import AIUsage
 from app.ai_usage.repository import AIUsageRepository
+from app.ai_usage.service import AIUsageService
+from app.cover_letters.ai_service import CoverLetterAIService
 from app.cover_letters.exceptions import (
     CoverLetterAccessDenied,
     CoverLetterNotFound,
     DuplicateCoverLetter,
 )
 from app.cover_letters.repository import CoverLetterRepository
-from app.cover_letters.service import CoverLetterService
 from app.resumes.repository import ResumeRepository
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
@@ -22,17 +23,20 @@ from tests.fakes.fake_ai_provider import GENERATED_COVER_LETTER, FakeAIProvider
 def service(db_session):
     repository = CoverLetterRepository(db_session)
     resume_repository = ResumeRepository(db_session)
-    ai_usage_repository = AIUsageRepository(db_session)
+
+    ai_usage_service = AIUsageService(
+        AIUsageRepository(db_session),
+    )
 
     ai_service = AIService(
         provider=FakeAIProvider(),
     )
 
-    return CoverLetterService(
+    return CoverLetterAIService(
         repository=repository,
         resume_repository=resume_repository,
         ai_service=ai_service,
-        ai_usage_repository=ai_usage_repository,
+        ai_usage_service=ai_usage_service,
     )
 
 

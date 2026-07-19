@@ -4,14 +4,14 @@ from uuid import uuid4
 import pytest
 
 from app.ai.service import AIService
-from app.ai_usage.models import AIUsage
 from app.ai_usage.repository import AIUsageRepository
+from app.ai_usage.service import AIUsageService
+from app.resumes.ai_service import ResumeAIService
 from app.resumes.exceptions import (
     ResumeAccessDenied,
     ResumeNotFound,
 )
 from app.resumes.repository import ResumeRepository
-from app.resumes.service import ResumeAIService
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
 from tests.fakes.fake_ai_provider import FakeAIProvider
@@ -20,7 +20,10 @@ from tests.fakes.fake_ai_provider import FakeAIProvider
 @pytest.fixture()
 def service(db_session):
     repository = ResumeRepository(db_session)
-    ai_usage_repository = AIUsageRepository(db_session)
+
+    ai_usage_service = AIUsageService(
+        AIUsageRepository(db_session),
+    )
 
     ai_service = AIService(
         provider=FakeAIProvider(),
@@ -29,7 +32,7 @@ def service(db_session):
     return ResumeAIService(
         repository=repository,
         ai_service=ai_service,
-        ai_usage_repository=ai_usage_repository,
+        ai_usage_service=ai_usage_service,
     )
 
 
@@ -182,7 +185,17 @@ def test_generate_resume_records_ai_usage(
         job_description="FastAPI backend role.",
     )
 
-    usage = db_session.query(AIUsage).one()
+    usage_service = AIUsageService(
+        AIUsageRepository(db_session),
+    )
+
+    history = usage_service.list_resume_history(
+        resume_id=resume.id,
+    )
+
+    assert len(history) == 1
+
+    usage = history[0]
 
     assert usage.user_id == user.id
     assert usage.resume_id == resume.id

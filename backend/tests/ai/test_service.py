@@ -26,6 +26,18 @@ class SuccessfulProvider(AIProvider):
     ) -> ProviderCapabilities:
         return _CAPABILITIES
 
+    @property
+    def provider_name(self) -> str:
+        return "openai"
+
+    @property
+    def model_name(self) -> str:
+        return "gpt-5"
+
+    @property
+    def prompt_version(self) -> str:
+        return "v1"
+
     def generate_cover_letter(
         self,
         request: CoverLetterGenerationRequest,
@@ -40,6 +52,7 @@ class SuccessfulProvider(AIProvider):
                 completion_tokens=150,
                 total_tokens=250,
                 latency_ms=40,
+                estimated_cost=0.0045,
             ),
         )
 
@@ -57,6 +70,7 @@ class SuccessfulProvider(AIProvider):
                 completion_tokens=1,
                 total_tokens=2,
                 latency_ms=1,
+                estimated_cost=0.00012,
             ),
         )
 
@@ -67,6 +81,18 @@ class FailingProvider(AIProvider):
         self,
     ) -> ProviderCapabilities:
         return _CAPABILITIES
+
+    @property
+    def provider_name(self) -> str:
+        return "openai"
+
+    @property
+    def model_name(self) -> str:
+        return "gpt-5"
+
+    @property
+    def prompt_version(self) -> str:
+        return "v1"
 
     def generate_cover_letter(
         self,
@@ -93,6 +119,7 @@ def build_request() -> CoverLetterGenerationRequest:
         resume_content="Experienced FastAPI developer.",
     )
 
+
 def build_resume_request() -> ResumeGenerationRequest:
     return ResumeGenerationRequest(
         resume_content="Experienced FastAPI developer.",
@@ -100,13 +127,17 @@ def build_resume_request() -> ResumeGenerationRequest:
 
 
 def build_retry_service() -> MagicMock:
-    retry_service = MagicMock(
-        spec=RetryService,
-    )
+    retry_service = MagicMock(spec=RetryService)
 
-    retry_service.execute.side_effect = lambda func, *args, **kwargs: func(
-        *args, **kwargs
-    )
+    def execute_side_effect(
+        operation,
+        *args,
+        on_retry=None,
+        **kwargs,
+    ):
+        return operation(*args, **kwargs)
+
+    retry_service.execute.side_effect = execute_side_effect
 
     return retry_service
 
@@ -241,3 +272,172 @@ def test_generate_resume_without_retry_service():
     assert response.metadata.latency_ms == 1
 
 
+def test_generate_resume_emits_observability_success():
+    observability = MagicMock()
+    context = MagicMock()
+
+    observability.execution_started.return_value = context
+
+    provider = SuccessfulProvider()
+    request = build_resume_request()
+
+    service = AIService(
+        provider=provider,
+        observability_service=observability,
+    )
+
+    result = service.generate_resume(request)
+
+    assert result.content == "Generated resume."
+
+    observability.execution_started.assert_called_once_with(
+        provider="openai",
+        model="gpt-5",
+        prompt_version="v1",
+        operation="resume_generation",
+        request_id=None,
+        user_id=None,
+        resume_id=None,
+        cover_letter_id=None,
+    )
+
+    observability.execution_succeeded.assert_called_once_with(
+        context,
+    )
+
+    observability.execution_failed.assert_not_called()
+
+
+def test_generate_resume_emits_observability_failure():
+    observability = MagicMock()
+    context = MagicMock()
+
+    observability.execution_started.return_value = context
+
+    provider = FailingProvider()
+    request = build_resume_request()
+
+    service = AIService(
+        provider=provider,
+        observability_service=observability,
+    )
+
+    with pytest.raises(
+        AIGenerationError,
+        match="Generation failed.",
+    ) as exc_info:
+        service.generate_resume(request)
+
+    observability.execution_started.assert_called_once_with(
+        provider="openai",
+        model="gpt-5",
+        prompt_version="v1",
+        operation="resume_generation",
+        request_id=None,
+        user_id=None,
+        resume_id=None,
+        cover_letter_id=None,
+    )
+
+    observability.execution_failed.assert_called_once_with(
+        context,
+        exc_info.value,
+    )
+
+    observability.execution_succeeded.assert_not_called()
+
+
+def test_generate_resume_emits_retry_events():
+    observability = MagicMock()
+
+    context = MagicMock()
+
+    observability.execution_started.return_value = context
+
+    retry_service = MagicMock()
+
+    provider = SuccessfulProvider()
+
+    request = build_resume_request()
+
+    def execute(
+        operation,
+        request,
+        *,
+        on_retry=None,
+    ):
+        on_retry(
+            1,
+            1.0,
+        )
+
+        return operation(
+            request,
+        )
+
+    retry_service.execute.side_effect = execute
+
+    service = AIService(
+        provider=provider,
+        retry_service=retry_service,
+        observability_service=observability,
+    )
+
+    result = service.generate_resume(
+        request,
+    )
+
+    assert result.content == "Generated resume."
+
+    observability.execution_started.assert_called_once()
+
+    observability.execution_retry.assert_called_once_with(
+        context,
+    )
+
+    observability.execution_succeeded.assert_called_once_with(
+        context,
+    )
+
+    observability.execution_failed.assert_not_called()
+
+
+def test_generate_resume_without_observability():
+    service = AIService(
+        provider=SuccessfulProvider(),
+    )
+
+    result = service.generate_resume(
+        build_resume_request(),
+    )
+
+    assert result.content == "Generated resume."
+
+
+def test_generate_resume_attaches_usage_to_observability_context():
+    observability = MagicMock()
+    context = MagicMock()
+
+    observability.execution_started.return_value = context
+
+    service = AIService(
+        provider=SuccessfulProvider(),
+        observability_service=observability,
+    )
+
+    result = service.generate_resume(
+        build_resume_request(),
+    )
+
+    assert result.content == "Generated resume."
+
+    context.attach_usage.assert_called_once_with(
+        prompt_tokens=1,
+        completion_tokens=1,
+        total_tokens=2,
+        estimated_cost=0.00012,
+    )
+
+    observability.execution_succeeded.assert_called_once_with(
+        context,
+    )

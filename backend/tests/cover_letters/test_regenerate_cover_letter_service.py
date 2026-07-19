@@ -5,6 +5,8 @@ import pytest
 from app.ai.service import AIService
 from app.ai_usage.models import AIUsage
 from app.ai_usage.repository import AIUsageRepository
+from app.ai_usage.service import AIUsageService
+from app.cover_letters.ai_service import CoverLetterAIService
 from app.cover_letters.exceptions import (
     CoverLetterAccessDenied,
     CoverLetterNotFound,
@@ -19,31 +21,27 @@ from tests.fakes.fake_ai_provider import GENERATED_COVER_LETTER, FakeAIProvider
 DEFAULT_CONTENT = "Original cover letter."
 
 
-
-def build_service(
+def build_cover_letter_service(
     db_session,
 ) -> CoverLetterService:
-    repository = CoverLetterRepository(
-        db_session,
-    )
-
-    resume_repository = ResumeRepository(
-        db_session,
-    )
-
-    ai_usage_repository = AIUsageRepository(
-        db_session,
-    )
-
-    ai_service = AIService(
-        provider=FakeAIProvider(),
-    )
-
     return CoverLetterService(
-        repository=repository,
-        resume_repository=resume_repository,
-        ai_service=ai_service,
-        ai_usage_repository=ai_usage_repository,
+        repository=CoverLetterRepository(db_session),
+        resume_repository=ResumeRepository(db_session),
+    )
+
+
+def build_cover_letter_ai_service(
+    db_session,
+) -> CoverLetterAIService:
+    return CoverLetterAIService(
+        repository=CoverLetterRepository(db_session),
+        resume_repository=ResumeRepository(db_session),
+        ai_service=AIService(
+            provider=FakeAIProvider(),
+        ),
+        ai_usage_service=AIUsageService(
+            AIUsageRepository(db_session),
+        ),
     )
 
 
@@ -76,26 +74,28 @@ def test_regenerate_cover_letter_success(
         user_id=user.id,
     )
 
-    service = build_service(
+    crud_service = build_cover_letter_service(
+        db_session,
+    )
+
+    ai_service = build_cover_letter_ai_service(
         db_session,
     )
 
     cover_letter = create_cover_letter(
-        service,
+        crud_service,
         user=user,
         resume=resume,
     )
 
-    regenerated = service.regenerate_cover_letter(
+    regenerated = ai_service.regenerate_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
         job_description="Looking for an experienced FastAPI backend engineer.",
     )
 
     assert regenerated.id == cover_letter.id
-    assert (
-        regenerated.content == GENERATED_COVER_LETTER
-    )
+    assert regenerated.content == GENERATED_COVER_LETTER
 
 
 def test_regenerate_preserves_metadata(
@@ -111,20 +111,24 @@ def test_regenerate_preserves_metadata(
         user_id=user.id,
     )
 
-    service = build_service(
+    crud_service = build_cover_letter_service(
+        db_session,
+    )
+
+    ai_service = build_cover_letter_ai_service(
         db_session,
     )
 
     cover_letter = create_cover_letter(
-        service,
+        crud_service,
         user=user,
         resume=resume,
     )
 
-    regenerated = service.regenerate_cover_letter(
+    regenerated = ai_service.regenerate_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
-        job_description="Backend engineer position.",
+        job_description="Looking for an experienced FastAPI backend engineer.",
     )
 
     assert regenerated.id == cover_letter.id
@@ -142,12 +146,12 @@ def test_regenerate_unknown_cover_letter(
         verified=True,
     )
 
-    service = build_service(
+    ai_service = build_cover_letter_ai_service(
         db_session,
     )
 
     with pytest.raises(CoverLetterNotFound):
-        service.regenerate_cover_letter(
+        ai_service.regenerate_cover_letter(
             user_id=user.id,
             cover_letter_id=uuid4(),
             job_description="Updated job description",
@@ -172,18 +176,22 @@ def test_regenerate_other_users_cover_letter(
         user_id=owner.id,
     )
 
-    service = build_service(
+    crud_service = build_cover_letter_service(
+        db_session,
+    )
+
+    ai_service = build_cover_letter_ai_service(
         db_session,
     )
 
     cover_letter = create_cover_letter(
-        service,
+        crud_service,
         user=owner,
         resume=resume,
     )
 
     with pytest.raises(CoverLetterAccessDenied):
-        service.regenerate_cover_letter(
+        ai_service.regenerate_cover_letter(
             user_id=attacker.id,
             cover_letter_id=cover_letter.id,
             job_description="Updated job description",
@@ -203,28 +211,30 @@ def test_regenerate_overwrites_existing_content(
         user_id=user.id,
     )
 
-    service = build_service(
+    crud_service = build_cover_letter_service(
+        db_session,
+    )
+
+    ai_service = build_cover_letter_ai_service(
         db_session,
     )
 
     cover_letter = create_cover_letter(
-        service,
+        crud_service,
         user=user,
         resume=resume,
     )
 
     original = cover_letter.content
 
-    regenerated = service.regenerate_cover_letter(
+    regenerated = ai_service.regenerate_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
-        job_description="Backend engineer",
+        job_description="Looking for an experienced FastAPI backend engineer.",
     )
 
     assert regenerated.content != original
-    assert (
-        regenerated.content == GENERATED_COVER_LETTER
-    )
+    assert regenerated.content == GENERATED_COVER_LETTER
 
 
 def test_regenerate_updates_database(
@@ -240,29 +250,32 @@ def test_regenerate_updates_database(
         user_id=user.id,
     )
 
-    service = build_service(
+    crud_service = build_cover_letter_service(
+        db_session,
+    )
+
+    ai_service = build_cover_letter_ai_service(
         db_session,
     )
 
     cover_letter = create_cover_letter(
-        service,
+        crud_service,
         user=user,
         resume=resume,
     )
 
-    service.regenerate_cover_letter(
+    ai_service.regenerate_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
-        job_description="Backend engineer",
+        job_description="Looking for an experienced FastAPI backend engineer.",
     )
 
-    loaded = service.get_cover_letter(
+    loaded = crud_service.get_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
     )
 
     assert loaded.content == GENERATED_COVER_LETTER
-
 
 def test_regenerate_cover_letter_records_ai_usage(
     db_session,
@@ -277,11 +290,11 @@ def test_regenerate_cover_letter_records_ai_usage(
         user_id=user.id,
     )
 
-    service = build_service(
+    ai_service = build_cover_letter_ai_service(
         db_session,
     )
 
-    cover_letter = service.generate_cover_letter(
+    cover_letter = ai_service.generate_cover_letter(
         user_id=user.id,
         resume_id=resume.id,
         title="Backend Engineer",
@@ -290,7 +303,7 @@ def test_regenerate_cover_letter_records_ai_usage(
         job_description="Initial job description.",
     )
 
-    service.regenerate_cover_letter(
+    ai_service.regenerate_cover_letter(
         user_id=user.id,
         cover_letter_id=cover_letter.id,
         job_description="Updated job description.",

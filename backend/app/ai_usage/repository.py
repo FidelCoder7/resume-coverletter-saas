@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.ai_usage.models import AIUsage
+from app.common.constants import AIRequestStatus
 
 
 class AIUsageRepository:
@@ -28,7 +29,7 @@ class AIUsageRepository:
         user_id: UUID,
         start_date: datetime,
         end_date: datetime,
-    ):
+    ) -> tuple:
         return (
             AIUsage.user_id == user_id,
             AIUsage.created_at >= start_date,
@@ -219,3 +220,159 @@ class AIUsageRepository:
         )
 
         return self.db.scalar(statement) or Decimal("0")
+
+    def average_latency_by_user_and_period(
+        self,
+        *,
+        user_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> float | None:
+        """
+        Return the average AI request latency for a user
+        within the specified period.
+        """
+
+        statement = select(
+            func.avg(
+                AIUsage.latency_ms,
+            )
+        ).where(
+            *self._period_filter(
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+            )
+        )
+
+        value = self.db.scalar(statement)
+
+        return float(value) if value is not None else None
+
+    def success_count_by_user_and_period(
+        self,
+        *,
+        user_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> int:
+        """
+        Count successful AI requests for a user
+        within the specified period.
+        """
+
+        statement = select(
+            func.count(
+                AIUsage.id,
+            )
+        ).where(
+            *self._period_filter(
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+            ),
+            AIUsage.status == AIRequestStatus.SUCCESS,
+        )
+
+        return self.db.scalar(statement) or 0
+
+    def failure_count_by_user_and_period(
+        self,
+        *,
+        user_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> int:
+        """
+        Count failed AI requests for a user
+        within the specified period.
+        """
+
+        statement = select(
+            func.count(
+                AIUsage.id,
+            )
+        ).where(
+            *self._period_filter(
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+            ),
+            AIUsage.status == AIRequestStatus.FAILED,
+        )
+
+        return self.db.scalar(statement) or 0
+
+    def requests_grouped_by_feature(
+        self,
+        *,
+        user_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> dict:
+        """
+        Return request counts grouped by AI feature.
+        """
+
+        statement = (
+            select(
+                AIUsage.feature,
+                func.count(
+                    AIUsage.id,
+                ),
+            )
+            .where(
+                *self._period_filter(
+                    user_id=user_id,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+            )
+            .group_by(
+                AIUsage.feature,
+            )
+        )
+
+        return {
+            feature: count
+            for feature, count in self.db.execute(
+                statement,
+            ).all()
+        }
+
+    def tokens_grouped_by_feature(
+        self,
+        *,
+        user_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> dict:
+        """
+        Return token usage grouped by AI feature.
+        """
+
+        statement = (
+            select(
+                AIUsage.feature,
+                func.sum(
+                    AIUsage.total_tokens,
+                ),
+            )
+            .where(
+                *self._period_filter(
+                    user_id=user_id,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+            )
+            .group_by(
+                AIUsage.feature,
+            )
+        )
+
+        return {
+            feature: total or 0
+            for feature, total in self.db.execute(
+                statement,
+            ).all()
+        }

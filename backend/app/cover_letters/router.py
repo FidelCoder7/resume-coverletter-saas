@@ -3,7 +3,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 
 from app.auth.dependencies import get_current_user
-from app.cover_letters.dependencies import get_cover_letter_service
+from app.cover_letters.ai_service import CoverLetterAIService
+from app.cover_letters.dependencies import (
+    get_cover_letter_ai_service,
+    get_cover_letter_service,
+)
 from app.cover_letters.schemas import (
     CoverLetterCreate,
     CoverLetterGenerateRequest,
@@ -51,7 +55,7 @@ def generate_cover_letter(
     resume_id: UUID,
     payload: CoverLetterGenerateRequest,
     current_user: User = Depends(get_current_user),
-    service: CoverLetterService = Depends(get_cover_letter_service),
+    service: CoverLetterAIService = Depends(get_cover_letter_ai_service),
 ):
     return service.generate_cover_letter(
         user_id=current_user.id,
@@ -71,7 +75,7 @@ def regenerate_cover_letter(
     cover_letter_id: UUID,
     payload: CoverLetterRegenerateRequest,
     current_user: User = Depends(get_current_user),
-    service: CoverLetterService = Depends(get_cover_letter_service),
+    service: CoverLetterAIService = Depends(get_cover_letter_ai_service),
 ):
     return service.regenerate_cover_letter(
         user_id=current_user.id,

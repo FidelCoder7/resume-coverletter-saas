@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.ai.dependencies import get_ai_service
 from app.ai.service import AIService
 from app.ai_usage.repository import AIUsageRepository
+from app.ai_usage.service import AIUsageService
 from app.database.session import get_db
 from app.resumes.ai_service import ResumeAIService
 from app.resumes.repository import ResumeRepository
@@ -29,10 +30,13 @@ def get_resume_ai_service(
     Dependency for AI-powered resume generation.
     """
     repository = ResumeRepository(db)
-    ai_usage_repository = AIUsageRepository(db)
+
+    ai_usage_service = AIUsageService(
+        AIUsageRepository(db),
+    )
 
     return ResumeAIService(
         repository=repository,
         ai_service=ai_service,
-        ai_usage_repository=ai_usage_repository,
+        ai_usage_service=ai_usage_service,
     )

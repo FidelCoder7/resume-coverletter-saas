@@ -23,6 +23,8 @@ class AIExecutionMetadata(BaseModel):
 
     latency_ms: int | None = None
 
+    estimated_cost: float | None = None
+
     model_config = ConfigDict(
         frozen=True,
     )

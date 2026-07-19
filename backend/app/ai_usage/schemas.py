@@ -58,3 +58,43 @@ class AIUsageListResponse(BaseModel):
     """
 
     items: list[AIUsageResponse]
+
+
+class AIUsageSummary(BaseModel):
+    """
+    Aggregated AI usage statistics for a user during a period.
+    """
+
+    total_requests: int
+
+    successful_requests: int
+
+    failed_requests: int
+
+    total_tokens: int
+
+    estimated_cost: Decimal
+
+    average_latency_ms: float | None
+
+
+class AIFeatureUsage(BaseModel):
+    """
+    Usage statistics grouped by AI feature.
+    """
+
+    feature: AIFeature
+
+    requests: int
+
+    total_tokens: int
+
+
+class AIUsageDashboard(BaseModel):
+    """
+    Dashboard response returned by the analytics service.
+    """
+
+    summary: AIUsageSummary
+
+    features: list[AIFeatureUsage]

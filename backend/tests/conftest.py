@@ -4,6 +4,8 @@ from collections.abc import Generator
 # Must be set BEFORE importing the application.
 os.environ["ENV_FILE"] = ".env.test"
 
+import logging
+
 import pytest
 from alembic.config import Config
 from fastapi.testclient import TestClient
@@ -15,8 +17,12 @@ from alembic import command
 from app.ai.dependencies import get_ai_service
 from app.ai.service import AIService
 from app.ai_usage.repository import AIUsageRepository
+from app.ai_usage.service import AIUsageService
 from app.core.config import settings
 from app.core.rate_limit import limiter
+from app.cover_letters.ai_service import CoverLetterAIService
+from app.cover_letters.dependencies import get_cover_letter_ai_service
+from app.cover_letters.repository import CoverLetterRepository
 from app.database.session import get_db
 from app.mail.service import MailService
 from app.main import app
@@ -24,6 +30,12 @@ from app.resumes.ai_service import ResumeAIService
 from app.resumes.dependencies import get_resume_ai_service
 from app.resumes.repository import ResumeRepository
 from tests.fakes.fake_ai_provider import FakeAIProvider
+
+
+@pytest.fixture(autouse=True)
+def configure_logging():
+    logging.getLogger().setLevel(logging.INFO)
+
 
 engine = create_engine(
     settings.DATABASE_URL,
@@ -153,17 +165,39 @@ def client(
 
     def override_get_resume_ai_service():
         repository = ResumeRepository(db_session)
-        ai_usage_repository = AIUsageRepository(db_session)
+
+        ai_usage_service = AIUsageService(
+            AIUsageRepository(db_session),
+        )
 
         return ResumeAIService(
             repository=repository,
             ai_service=fake_ai_service,
-            ai_usage_repository=ai_usage_repository,
+            ai_usage_service=ai_usage_service,
         )
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_ai_service] = override_get_ai_service
     app.dependency_overrides[get_resume_ai_service] = override_get_resume_ai_service
+
+    def override_get_cover_letter_ai_service():
+        repository = CoverLetterRepository(db_session)
+        resume_repository = ResumeRepository(db_session)
+
+        ai_usage_service = AIUsageService(
+            AIUsageRepository(db_session),
+        )
+
+        return CoverLetterAIService(
+            repository=repository,
+            resume_repository=resume_repository,
+            ai_service=fake_ai_service,
+            ai_usage_service=ai_usage_service,
+        )
+
+    app.dependency_overrides[get_cover_letter_ai_service] = (
+        override_get_cover_letter_ai_service
+    )
 
     limiter.enabled = False
 
