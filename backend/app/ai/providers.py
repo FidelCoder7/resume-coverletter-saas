@@ -3,12 +3,21 @@ from abc import ABC, abstractmethod
 from app.ai.contracts import AIExecutionResult
 from app.ai.provider_capabilities import ProviderCapabilities
 from app.ai.schemas import (
+    ATSOptimizationRequest,
+    ATSOptimizationResult,
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
 )
 
 
 class AIProvider(ABC):
+    """
+    Provider-agnostic interface implemented by every AI provider.
+
+    Each provider exposes its supported capabilities together with
+    generation operations for the AI features supported by the
+    application.
+    """
 
     @property
     @abstractmethod
@@ -28,7 +37,7 @@ class AIProvider(ABC):
     @abstractmethod
     def prompt_version(self) -> str:
         """
-        Current prompt version used by this provider.
+        Default prompt version used by this provider.
         """
 
     @property
@@ -56,4 +65,17 @@ class AIProvider(ABC):
     ) -> AIExecutionResult[str]:
         """
         Generate a resume.
+        """
+
+    @abstractmethod
+    def generate_ats_optimization(
+        self,
+        request: ATSOptimizationRequest,
+    ) -> AIExecutionResult[ATSOptimizationResult]:
+        """
+        Generate an ATS-optimized version of a resume.
+
+        This operation analyzes an existing resume against a supplied
+        job description and returns an optimized resume without
+        modifying any persisted data.
         """

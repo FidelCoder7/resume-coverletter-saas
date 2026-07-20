@@ -19,7 +19,9 @@ def get_resume_service(
     """
     repository = ResumeRepository(db)
 
-    return ResumeService(repository)
+    return ResumeService(
+        repository=repository,
+    )
 
 
 def get_resume_ai_service(

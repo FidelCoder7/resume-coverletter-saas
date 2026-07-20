@@ -1,4 +1,5 @@
 from app.ai.prompts import (
+    ATSOptimizationPromptBuilder,
     CoverLetterPromptBuilder,
     ResumePromptBuilder,
 )
@@ -18,6 +19,13 @@ class PromptRegistry:
 
     _cover_letter_builders: dict[str, type[CoverLetterPromptBuilder]] = {
         "cover_letter_v1": CoverLetterPromptBuilder,
+    }
+
+    _ats_optimization_builders: dict[
+        str,
+        type[ATSOptimizationPromptBuilder],
+    ] = {
+        "ats_optimization_v1": ATSOptimizationPromptBuilder,
     }
 
     @classmethod
@@ -50,4 +58,21 @@ class PromptRegistry:
         except KeyError as exc:
             raise ValueError(
                 f"Unsupported cover letter prompt version: {version}",
+            ) from exc
+
+    @classmethod
+    def get_ats_optimization_prompt_builder(
+        cls,
+        version: str,
+    ) -> type[ATSOptimizationPromptBuilder]:
+        """
+        Return the prompt builder for the requested ATS optimization
+        prompt version.
+        """
+
+        try:
+            return cls._ats_optimization_builders[version]
+        except KeyError as exc:
+            raise ValueError(
+                f"Unsupported ATS optimization prompt version: {version}",
             ) from exc

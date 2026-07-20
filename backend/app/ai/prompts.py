@@ -1,4 +1,5 @@
 from app.ai.schemas import (
+    ATSOptimizationRequest,
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
 )
@@ -129,6 +130,94 @@ class ResumePromptBuilder:
                 "- Preserve all factual information.",
                 "- Do not invent qualifications or experience.",
                 "- Return only the completed resume.",
+            ]
+        )
+
+        return "\n".join(sections)
+
+
+class ATSOptimizationPromptBuilder:
+    """
+    Builds prompts dedicated to ATS resume optimization.
+
+    Unlike ResumePromptBuilder, this builder assumes that an existing
+    resume already exists and focuses on maximizing compatibility with
+    a specific job description while preserving factual accuracy.
+    """
+
+    @staticmethod
+    def build_system_prompt() -> str:
+        """
+        Return the ATS optimization system prompt.
+        """
+
+        return (
+            "You are an expert ATS optimization specialist, technical recruiter, "
+            "and professional resume writer. Your responsibility is to optimize "
+            "an existing resume for Applicant Tracking Systems while remaining "
+            "completely truthful. Improve keyword alignment, section clarity, "
+            "professional wording, readability, and ATS compatibility. Never "
+            "invent employers, education, dates, certifications, technologies, "
+            "projects, responsibilities, or achievements that are not supported "
+            "by the supplied resume. "
+            "Return your response as valid JSON only."
+        )
+
+    @staticmethod
+    def build_user_prompt(
+        request: ATSOptimizationRequest,
+    ) -> str:
+        """
+        Build the ATS optimization prompt.
+        """
+
+        sections = [
+            "Optimize the following resume for the supplied job description.",
+            "",
+            "Resume",
+            "",
+            request.resume_content,
+        ]
+
+        if request.target_job_title:
+            sections.extend(
+                [
+                    "",
+                    "Target Job Title",
+                    "",
+                    request.target_job_title,
+                ]
+            )
+
+        sections.extend(
+            [
+                "",
+                "Job Description",
+                "",
+                request.job_description,
+                "",
+                "Requirements",
+                "",
+                "- Preserve all factual information.",
+                "- Improve ATS keyword alignment.",
+                "- Improve professional wording.",
+                "- Improve readability.",
+                "- Improve action-oriented language.",
+                "- Improve measurable impact where evidence already exists.",
+                "- Do not invent qualifications.",
+                "- Do not invent experience.",
+                "- Do not invent achievements.",
+                "",
+                "Return ONLY valid JSON.",
+                "",
+                "The optimized resume must be returned as structured JSON.",
+                "",
+                "The JSON must contain these fields:",
+                '- "optimized_resume": string',
+                '- "ats_score": integer between 0 and 100',
+                '- "missing_keywords": array of strings',
+                '- "matched_keywords": array of strings',
+                '- "recommendations": array of strings',
             ]
         )
 

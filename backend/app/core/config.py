@@ -102,6 +102,8 @@ class Settings(BaseSettings):
 
     AI_COVER_LETTER_PROMPT_VERSION: str = "cover_letter_v1"
 
+    AI_ATS_OPTIMIZATION_PROMPT_VERSION: str = "ats_optimization_v1"
+
     model_config = SettingsConfigDict(
         env_file=os.getenv(
             "ENV_FILE",

@@ -19,6 +19,7 @@ def build_config() -> AISettings:
         retry_jitter=False,
         resume_prompt_version="resume_v1",
         cover_letter_prompt_version="cover_letter_v1",
+        ats_optimization_prompt_version="ats_v1",
     )
 
 
@@ -34,6 +35,7 @@ def test_openai_provider_capabilities(
 
     assert capabilities.supports_cover_letters is True
     assert capabilities.supports_resume_generation is True
+    assert capabilities.supports_ats_optimization is True
     assert capabilities.supports_streaming is False
     assert capabilities.supports_json_mode is False
     assert capabilities.supports_vision is False

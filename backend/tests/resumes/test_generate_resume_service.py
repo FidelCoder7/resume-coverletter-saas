@@ -205,8 +205,8 @@ def test_generate_resume_records_ai_usage(
     assert usage.model == "fake-model"
 
     assert usage.prompt_tokens == 120
-    assert usage.completion_tokens == 180
-    assert usage.total_tokens == 300
+    assert usage.completion_tokens == 240
+    assert usage.total_tokens == 360
 
     assert usage.status.value == "success"
 

@@ -277,6 +277,7 @@ def test_regenerate_updates_database(
 
     assert loaded.content == GENERATED_COVER_LETTER
 
+
 def test_regenerate_cover_letter_records_ai_usage(
     db_session,
 ):

@@ -34,6 +34,7 @@ def build_config(
         retry_jitter=retry_jitter,
         resume_prompt_version="resume_v1",
         cover_letter_prompt_version="cover_letter_v1",
+        ats_optimization_prompt_version="ats_optimization_v1",
     )
 
 

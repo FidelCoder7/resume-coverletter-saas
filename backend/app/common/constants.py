@@ -49,6 +49,8 @@ class AIFeature(StrEnum):
 
     RESUME_GENERATION = "resume_generation"
 
+    ATS_OPTIMIZATION = "ats_optimization"
+
 
 class AIRequestStatus(StrEnum):
     SUCCESS = "success"

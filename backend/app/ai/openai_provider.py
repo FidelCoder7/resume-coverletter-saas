@@ -8,6 +8,7 @@ from app.ai.prompt_service import PromptService
 from app.ai.provider_capabilities import ProviderCapabilities
 from app.ai.providers import AIProvider
 from app.ai.schemas import (
+    ATSOptimizationRequest,
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
 )
@@ -15,6 +16,7 @@ from app.ai.schemas import (
 _CAPABILITIES = ProviderCapabilities(
     supports_cover_letters=True,
     supports_resume_generation=True,
+    supports_ats_optimization=True,
     supports_streaming=False,
     supports_json_mode=False,
     supports_vision=False,
@@ -88,10 +90,13 @@ class OpenAIProvider(
         return self.config.default_model
 
     @property
-    def prompt_version(self) -> str:
+    def prompt_version(
+        self,
+    ) -> str:
         """
         Default prompt version exposed by this provider.
         """
+
         return self.config.resume_prompt_version
 
     def generate_cover_letter(
@@ -126,4 +131,21 @@ class OpenAIProvider(
             ),
             prompt_version=self.config.resume_prompt_version,
             error_message="OpenAI failed to generate a resume.",
+        )
+
+    def generate_ats_optimization(
+        self,
+        request: ATSOptimizationRequest,
+    ) -> AIExecutionResult[str]:
+        """
+        Generate an ATS-optimized resume using OpenAI.
+        """
+
+        return self.execute_generation(
+            messages=PromptService.build_ats_optimization_messages(
+                request,
+                version=self.config.ats_optimization_prompt_version,
+            ),
+            prompt_version=self.config.ats_optimization_prompt_version,
+            error_message="OpenAI failed to optimize the resume for ATS.",
         )

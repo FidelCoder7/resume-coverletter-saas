@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from app.ai.formatters import ResumeFormatter
+from app.ai.schemas import ATSOptimizationRequest, ATSOptimizationResult
 from app.resumes.exceptions import (
     ResumeAccessDenied,
     ResumeNotFound,
@@ -88,3 +90,46 @@ class ResumeService:
         )
 
         self.repository.delete(resume)
+
+    def optimize_resume_for_ats(
+        self,
+        *,
+        user_id: UUID,
+        resume_id: UUID,
+        job_description: str,
+        target_job_title: str | None = None,
+    ) -> ATSOptimizationResult:
+        """
+        Generate an ATS-optimized version of a resume.
+
+        The original resume is never modified. The optimized resume
+        and ATS analysis are returned to the caller.
+        """
+
+        resume = self.get_resume(
+            user_id=user_id,
+            resume_id=resume_id,
+        )
+
+        resume = self.repository.get_for_generation(
+            resume.id,
+        )
+
+        if resume is None:
+            raise ResumeNotFound(
+                "Resume not found.",
+            )
+
+        request = ATSOptimizationRequest(
+            resume_content=ResumeFormatter.format(
+                resume,
+            ),
+            job_description=job_description,
+            target_job_title=target_job_title,
+        )
+
+        return self.ai_service.generate_ats_optimization(
+            request,
+            user_id=user_id,
+            resume_id=resume.id,
+        )

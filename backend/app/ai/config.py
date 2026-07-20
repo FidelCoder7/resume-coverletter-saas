@@ -26,6 +26,7 @@ class AISettings:
 
     resume_prompt_version: str
     cover_letter_prompt_version: str
+    ats_optimization_prompt_version: str
 
 
 ai_settings = AISettings(
@@ -42,4 +43,5 @@ ai_settings = AISettings(
     retry_jitter=settings.AI_RETRY_JITTER,
     resume_prompt_version=settings.AI_RESUME_PROMPT_VERSION,
     cover_letter_prompt_version=settings.AI_COVER_LETTER_PROMPT_VERSION,
+    ats_optimization_prompt_version=settings.AI_ATS_OPTIMIZATION_PROMPT_VERSION,
 )

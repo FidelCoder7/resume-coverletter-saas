@@ -1,7 +1,10 @@
 from collections.abc import Callable
+from typing import TypeVar
 from uuid import UUID
 
-from app.ai.contracts import AIExecutionResult
+from app.ai.contracts import (
+    AIExecutionResult,
+)
 from app.ai.exceptions import (
     AIGenerationError,
     AIProviderError,
@@ -12,9 +15,14 @@ from app.ai.observability.service import AIObservabilityService
 from app.ai.providers import AIProvider
 from app.ai.retry import RetryService
 from app.ai.schemas import (
+    ATSOptimizationRequest,
+    ATSOptimizationResult,
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
 )
+from app.ats.scoring import ATSScoringService
+
+RequestT = TypeVar("RequestT")
 
 
 class AIService:
@@ -36,9 +44,9 @@ class AIService:
         self,
         *,
         operation: str,
-        request: ResumeGenerationRequest | CoverLetterGenerationRequest,
+        request: RequestT,
         generate: Callable[
-            [ResumeGenerationRequest | CoverLetterGenerationRequest],
+            [RequestT],
             AIExecutionResult[str],
         ],
         request_id: str | None = None,
@@ -151,4 +159,57 @@ class AIService:
             user_id=user_id,
             resume_id=resume_id,
             generate=self.provider.generate_resume,
+        )
+
+    def generate_ats_optimization(
+        self,
+        request: ATSOptimizationRequest,
+        *,
+        request_id: str | None = None,
+        user_id: UUID | None = None,
+        resume_id: UUID | None = None,
+    ) -> ATSOptimizationResult:
+        """
+        Generate an ATS-optimized resume together with
+        deterministic ATS scoring information.
+        """
+
+        result = self._execute_generation(
+            operation="ats_optimization",
+            request=request,
+            request_id=request_id,
+            user_id=user_id,
+            resume_id=resume_id,
+            generate=self.provider.generate_ats_optimization,
+        )
+
+        score, matched_keywords, missing_keywords = ATSScoringService.score(
+            resume=result.content,
+            job_description=request.job_description,
+        )
+
+        recommendations: list[str] = []
+
+        if missing_keywords:
+            recommendations.append(
+                "Consider incorporating the missing ATS keywords where they " \
+                "accurately reflect your experience."
+            )
+
+        if score < 80:
+            recommendations.append(
+                "Improve alignment between the resume and the target job description."
+            )
+
+        if score >= 80:
+            recommendations.append(
+                "The resume demonstrates strong ATS keyword alignment."
+            )
+
+        return ATSOptimizationResult(
+            optimized_resume=result.content,
+            ats_score=score,
+            matched_keywords=matched_keywords,
+            missing_keywords=missing_keywords,
+            recommendations=recommendations,
         )

@@ -1,5 +1,6 @@
 from app.ai.prompt_registry import PromptRegistry
 from app.ai.schemas import (
+    ATSOptimizationRequest,
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
 )
@@ -51,6 +52,33 @@ class PromptService:
         """
 
         builder = PromptRegistry.get_resume_prompt_builder(
+            version,
+        )
+
+        return [
+            {
+                "role": "system",
+                "content": builder.build_system_prompt(),
+            },
+            {
+                "role": "user",
+                "content": builder.build_user_prompt(
+                    request,
+                ),
+            },
+        ]
+
+    @staticmethod
+    def build_ats_optimization_messages(
+        request: ATSOptimizationRequest,
+        *,
+        version: str,
+    ) -> list[dict[str, str]]:
+        """
+        Build chat messages for ATS resume optimization.
+        """
+
+        builder = PromptRegistry.get_ats_optimization_prompt_builder(
             version,
         )
 
