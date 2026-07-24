@@ -8,6 +8,8 @@ from app.ai_usage.service import AIUsageService
 from app.ats.ai_service import ATSAIService
 from app.ats.service import ATSService
 from app.database.session import get_db
+from app.resume_versions.dependencies import get_resume_version_service
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
 
 
@@ -32,6 +34,9 @@ def get_ats_ai_service(
 def get_ats_service(
     db: Session = Depends(get_db),
     ai_service: ATSAIService = Depends(get_ats_ai_service),
+    resume_version_service: ResumeVersionService = Depends(
+        get_resume_version_service,
+    ),
 ) -> ATSService:
     """
     Dependency for ATS optimization workflows.
@@ -42,4 +47,5 @@ def get_ats_service(
     return ATSService(
         repository=repository,
         ai_service=ai_service,
+        resume_version_service=resume_version_service,
     )

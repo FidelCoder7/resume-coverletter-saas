@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+from app.common.constants import ResumeVersionSource
+from app.resume_versions.models import ResumeVersion
 from tests.factories.resume_factory import create_resume
 from tests.factories.skill_factory import create_skill
 from tests.factories.user_factory import (
@@ -132,3 +134,69 @@ def test_delete_unknown_skill_returns_404(
     )
 
     assert response.status_code == 404
+
+
+def test_delete_skill_creates_resume_version(
+    client,
+    db_session,
+):
+    user = create_user(
+        db_session,
+        email="version-delete-skill@example.com",
+        password=DEFAULT_PASSWORD,
+        verified=True,
+    )
+
+    resume = create_resume(
+        db_session,
+        user_id=user.id,
+    )
+
+    skill = create_skill(
+        db_session,
+        resume_id=resume.id,
+    )
+
+    login = client.post(
+        "/auth/login",
+        data={
+            "username": user.email,
+            "password": DEFAULT_PASSWORD,
+        },
+    )
+
+    assert login.status_code == 200
+
+    token = login.json()["access_token"]
+
+    response = client.delete(
+        f"/api/skills/{skill.id}",
+        headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
+
+    assert response.status_code == 204
+
+    db_session.expire_all()
+
+    versions = (
+        db_session.query(ResumeVersion)
+        .filter(
+            ResumeVersion.resume_id == resume.id,
+        )
+        .order_by(
+            ResumeVersion.version_number.asc(),
+        )
+        .all()
+    )
+
+    assert len(versions) == 1
+
+    version = versions[0]
+
+    assert version.version_number == 1
+    assert version.source == ResumeVersionSource.USER
+    assert version.change_summary == "Skill removed from resume."
+
+    assert version.snapshot["skills"] == []

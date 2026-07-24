@@ -9,6 +9,9 @@ from app.resumes.models import Resume
 class ResumeRepository:
     """
     Repository for resume persistence.
+
+    Repositories do not commit transactions.
+    Transaction ownership belongs to the service layer.
     """
 
     def __init__(
@@ -22,8 +25,24 @@ class ResumeRepository:
         resume: Resume,
     ) -> Resume:
         self.db.add(resume)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(resume)
+
+        return resume
+
+    def create_without_commit(
+        self,
+        resume: Resume,
+    ) -> Resume:
+        """
+        Add a resume to the current transaction without committing.
+
+        Used by workflows that persist a resume together with related
+        records and version history as one atomic transaction.
+        """
+
+        self.db.add(resume)
+        self.db.flush()
 
         return resume
 
@@ -42,8 +61,34 @@ class ResumeRepository:
         resume_id: UUID,
     ) -> Resume | None:
         """
-        Return a resume with all related entities eagerly loaded for
-        AI cover letter generation.
+        Return a resume with all related resume content eagerly loaded.
+        """
+
+        statement = (
+            select(Resume)
+            .options(
+                selectinload(Resume.experiences),
+                selectinload(Resume.educations),
+                selectinload(Resume.skills),
+                selectinload(Resume.projects),
+                selectinload(Resume.certifications),
+            )
+            .where(
+                Resume.id == resume_id,
+            )
+        )
+
+        return self.db.scalar(statement)
+
+    def get_for_restore(
+        self,
+        resume_id: UUID,
+    ) -> Resume | None:
+        """
+        Return a resume with all child collections eagerly loaded.
+
+        This ensures the restore workflow can replace the complete
+        resume state inside one database transaction.
         """
 
         statement = (
@@ -82,7 +127,7 @@ class ResumeRepository:
         self,
         resume: Resume,
     ) -> Resume:
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(resume)
 
         return resume
@@ -92,7 +137,7 @@ class ResumeRepository:
         resume: Resume,
     ) -> None:
         self.db.delete(resume)
-        self.db.commit()
+        self.db.flush()
 
     def get_default_for_user(
         self,

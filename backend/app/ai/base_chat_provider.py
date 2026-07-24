@@ -127,5 +127,3 @@ class BaseChatProvider(ABC):
             raise AIProviderError(
                 error_message,
             ) from exc
-
-        

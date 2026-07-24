@@ -1,12 +1,14 @@
 from datetime import date
 from uuid import UUID
 
+from app.common.constants import ResumeVersionSource
 from app.educations.exceptions import (
     EducationAccessDenied,
     EducationNotFound,
 )
 from app.educations.models import Education
 from app.educations.repository import EducationRepository
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
 
 
@@ -19,9 +21,11 @@ class EducationService:
         self,
         repository: EducationRepository,
         resume_repository: ResumeRepository,
-    ):
+        resume_version_service: ResumeVersionService,
+    ) -> None:
         self.repository = repository
         self.resume_repository = resume_repository
+        self.resume_version_service = resume_version_service
 
     def _verify_resume_owner(
         self,
@@ -65,7 +69,7 @@ class EducationService:
         description: str | None,
         display_order: int,
     ) -> Education:
-        self._verify_resume_owner(
+        resume = self._verify_resume_owner(
             resume_id=resume_id,
             user_id=user_id,
         )
@@ -84,9 +88,20 @@ class EducationService:
             display_order=display_order,
         )
 
-        return self.repository.create(
+        education = self.repository.create(
             education,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Education added to resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(education)
+
+        return education
 
     def list_educations(
         self,
@@ -157,9 +172,25 @@ class EducationService:
         education.description = description
         education.display_order = display_order
 
-        return self.repository.update(
+        education = self.repository.update(
             education,
         )
+
+        resume = self._verify_resume_owner(
+            resume_id=education.resume_id,
+            user_id=user_id,
+        )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Education updated on resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(education)
+
+        return education
 
     def delete_education(
         self,
@@ -172,6 +203,19 @@ class EducationService:
             education_id=education_id,
         )
 
+        resume = self._verify_resume_owner(
+            resume_id=education.resume_id,
+            user_id=user_id,
+        )
+
         self.repository.delete(
             education,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Education removed from resume.",
+        )
+
+        self.repository.db.commit()

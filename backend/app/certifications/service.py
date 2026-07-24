@@ -8,6 +8,8 @@ from app.certifications.exceptions import (
 )
 from app.certifications.models import Certification
 from app.certifications.repository import CertificationRepository
+from app.common.constants import ResumeVersionSource
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
 
 
@@ -20,9 +22,11 @@ class CertificationService:
         self,
         repository: CertificationRepository,
         resume_repository: ResumeRepository,
-    ):
+        resume_version_service: ResumeVersionService,
+    ) -> None:
         self.repository = repository
         self.resume_repository = resume_repository
+        self.resume_version_service = resume_version_service
 
     def _verify_resume_owner(
         self,
@@ -90,7 +94,7 @@ class CertificationService:
         does_not_expire: bool,
         display_order: int,
     ) -> Certification:
-        self._verify_resume_owner(
+        resume = self._verify_resume_owner(
             resume_id=resume_id,
             user_id=user_id,
         )
@@ -113,9 +117,20 @@ class CertificationService:
             display_order=display_order,
         )
 
-        return self.repository.create(
+        certification = self.repository.create(
             certification,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Certification added to resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(certification)
+
+        return certification
 
     def list_certifications(
         self,
@@ -188,9 +203,25 @@ class CertificationService:
         certification.does_not_expire = does_not_expire
         certification.display_order = display_order
 
-        return self.repository.update(
+        certification = self.repository.update(
             certification,
         )
+
+        resume = self._verify_resume_owner(
+            resume_id=certification.resume_id,
+            user_id=user_id,
+        )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Certification updated on resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(certification)
+
+        return certification
 
     def delete_certification(
         self,
@@ -203,6 +234,19 @@ class CertificationService:
             certification_id=certification_id,
         )
 
+        resume = self._verify_resume_owner(
+            resume_id=certification.resume_id,
+            user_id=user_id,
+        )
+
         self.repository.delete(
             certification,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Certification removed from resume.",
+        )
+
+        self.repository.db.commit()

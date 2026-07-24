@@ -22,7 +22,7 @@ class SkillRepository:
         skill: Skill,
     ) -> Skill:
         self.db.add(skill)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(skill)
 
         return skill
@@ -58,7 +58,7 @@ class SkillRepository:
         self,
         skill: Skill,
     ) -> Skill:
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(skill)
 
         return skill
@@ -68,4 +68,4 @@ class SkillRepository:
         skill: Skill,
     ) -> None:
         self.db.delete(skill)
-        self.db.commit()
+        self.db.flush()

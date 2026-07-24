@@ -7,6 +7,7 @@ from app.cover_letters.router import router as cover_letters_router
 from app.educations.router import router as education_router
 from app.experiences.router import router as experiences_router
 from app.projects.router import router as projects_router
+from app.resume_versions.router import router as resume_versions_router
 from app.resumes.router import router as resumes_router
 from app.skills.router import router as skills_router
 from app.users.router import router as users_router
@@ -26,6 +27,9 @@ api_router.include_router(
     resumes_router,
 )
 
+api_router.include_router(
+    resume_versions_router,
+)
 
 api_router.include_router(
     ats_router,

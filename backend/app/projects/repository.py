@@ -22,7 +22,7 @@ class ProjectRepository:
         project: Project,
     ) -> Project:
         self.db.add(project)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(project)
 
         return project
@@ -58,7 +58,7 @@ class ProjectRepository:
         self,
         project: Project,
     ) -> Project:
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(project)
 
         return project

@@ -26,7 +26,7 @@ class CertificationRepository:
         self.db.add(certification)
 
         try:
-            self.db.commit()
+            self.db.flush()
         except IntegrityError:
             self.db.rollback()
             raise DuplicateCertification(
@@ -69,7 +69,7 @@ class CertificationRepository:
         certification: Certification,
     ) -> Certification:
         try:
-            self.db.commit()
+            self.db.flush()
         except IntegrityError:
             self.db.rollback()
             raise DuplicateCertification(
@@ -85,4 +85,4 @@ class CertificationRepository:
         certification: Certification,
     ) -> None:
         self.db.delete(certification)
-        self.db.commit()
+        self.db.flush()

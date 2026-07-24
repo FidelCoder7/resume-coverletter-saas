@@ -22,7 +22,7 @@ class ExperienceRepository:
         experience: Experience,
     ) -> Experience:
         self.db.add(experience)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(experience)
 
         return experience
@@ -58,7 +58,7 @@ class ExperienceRepository:
         self,
         experience: Experience,
     ) -> Experience:
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(experience)
 
         return experience
@@ -68,4 +68,4 @@ class ExperienceRepository:
         experience: Experience,
     ) -> None:
         self.db.delete(experience)
-        self.db.commit()
+        self.db.flush()

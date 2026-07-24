@@ -1,12 +1,14 @@
 from datetime import date
 from uuid import UUID
 
+from app.common.constants import ResumeVersionSource
 from app.experiences.exceptions import (
     ExperienceAccessDenied,
     ExperienceNotFound,
 )
 from app.experiences.models import Experience
 from app.experiences.repository import ExperienceRepository
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
 
 
@@ -19,9 +21,11 @@ class ExperienceService:
         self,
         repository: ExperienceRepository,
         resume_repository: ResumeRepository,
+        resume_version_service: ResumeVersionService,
     ):
         self.repository = repository
         self.resume_repository = resume_repository
+        self.resume_version_service = resume_version_service
 
     def _verify_resume_owner(
         self,
@@ -64,7 +68,7 @@ class ExperienceService:
         description: str | None,
         display_order: int,
     ) -> Experience:
-        self._verify_resume_owner(
+        resume = self._verify_resume_owner(
             resume_id=resume_id,
             user_id=user_id,
         )
@@ -82,9 +86,20 @@ class ExperienceService:
             display_order=display_order,
         )
 
-        return self.repository.create(
+        experience = self.repository.create(
             experience,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Experience added to resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(experience)
+
+        return experience
 
     def list_experiences(
         self,
@@ -153,9 +168,25 @@ class ExperienceService:
         experience.description = description
         experience.display_order = display_order
 
-        return self.repository.update(
+        experience = self.repository.update(
             experience,
         )
+
+        resume = self._verify_resume_owner(
+            resume_id=experience.resume_id,
+            user_id=user_id,
+        )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Experience updated by user.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(experience)
+
+        return experience
 
     def delete_experience(
         self,
@@ -168,6 +199,21 @@ class ExperienceService:
             experience_id=experience_id,
         )
 
+        resume_id = experience.resume_id
+
         self.repository.delete(
             experience,
         )
+
+        resume = self._verify_resume_owner(
+            resume_id=resume_id,
+            user_id=user_id,
+        )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Experience removed from resume.",
+        )
+
+        self.repository.db.commit()

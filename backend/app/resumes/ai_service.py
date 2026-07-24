@@ -8,7 +8,9 @@ from app.ai.service import AIService
 from app.ai_usage.service import AIUsageService
 from app.common.constants import (
     AIFeature,
+    ResumeVersionSource,
 )
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.exceptions import (
     ResumeAccessDenied,
     ResumeNotFound,
@@ -27,10 +29,12 @@ class ResumeAIService:
         repository: ResumeRepository,
         ai_service: AIService,
         ai_usage_service: AIUsageService,
+        resume_version_service: ResumeVersionService,
     ) -> None:
         self.repository = repository
         self.ai_service = ai_service
         self.ai_usage_service = ai_usage_service
+        self.resume_version_service = resume_version_service
 
     def _verify_resume_owner(
         self,
@@ -87,6 +91,8 @@ class ResumeAIService:
     ) -> Resume:
         """
         Generate or refresh the AI-rendered version of a resume.
+
+        A successful generation creates an immutable AI version snapshot.
         """
 
         resume = self._verify_resume_owner(
@@ -127,6 +133,12 @@ class ResumeAIService:
 
         resume = self.repository.update(
             resume,
+        )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.AI,
+            change_summary="Resume generated using AI.",
         )
 
         self._record_ai_usage(

@@ -192,7 +192,7 @@ class AIService:
 
         if missing_keywords:
             recommendations.append(
-                "Consider incorporating the missing ATS keywords where they " \
+                "Consider incorporating the missing ATS keywords where they "
                 "accurately reflect your experience."
             )
 

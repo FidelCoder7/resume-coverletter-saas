@@ -56,3 +56,11 @@ class AIRequestStatus(StrEnum):
     SUCCESS = "success"
     FAILED = "failed"
     CANCELLED = "cancelled"
+
+
+class ResumeVersionSource(StrEnum):
+    USER = "user"
+    AI = "ai"
+    ATS = "ats"
+    RESTORE = "restore"
+    IMPORT = "import"

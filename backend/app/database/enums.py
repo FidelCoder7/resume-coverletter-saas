@@ -5,6 +5,7 @@ from app.common.constants import (
     AIFeature,
     AIRequestStatus,
     EmploymentType,
+    ResumeVersionSource,
     SkillLevel,
     SubscriptionPlan,
     UserRole,
@@ -45,5 +46,12 @@ ai_feature_enum = Enum(
 ai_request_status_enum = Enum(
     AIRequestStatus,
     name="ai_request_status",
+    create_type=True,
+)
+
+resume_version_source_enum = Enum(
+    ResumeVersionSource,
+    name="resume_version_source",
+    values_callable=lambda enum_class: [member.value for member in enum_class],
     create_type=True,
 )

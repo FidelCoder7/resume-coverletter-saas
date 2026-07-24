@@ -4,10 +4,10 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 
 ## Current Status
 
-**Current Version:** **v1.6.0**
-**Status:** ATS Resume Optimization Engine completed
+**Current Version:** **v1.7.0**  
+**Status:** Resume Versioning & History completed and frozen
 
----
+
 
 ## Features
 
@@ -35,6 +35,31 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Projects management
 * Certifications management
 * Default resume support
+* Resume version snapshots
+* Resume version history
+* Automatic version creation
+* Historical resume restoration
+* Immutable historical versions
+* Restore operations create new version history entries
+* Full nested resume content restoration
+
+### Resume Versioning & History
+
+* Historical resume snapshots
+* Sequential per-resume version numbering
+* Version history retrieval
+* Version ownership and access control
+* Immutable historical snapshots
+* Restore previous resume versions
+* Restore complete resume state
+* Restore experiences
+* Restore education
+* Restore skills
+* Restore projects
+* Restore certifications
+* Automatic `RESTORE` version creation
+* Internal service-layer version creation
+* No public manual version creation endpoint
 
 ### Cover Letter Management
 
@@ -83,8 +108,9 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * End-to-end workflow tests
 * Fake AI provider for deterministic testing
 * Production-ready testing infrastructure
+* Resume versioning and restore workflow tests
 
----
+
 
 ## Technology Stack
 
@@ -117,7 +143,7 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * GitHub Actions (planned)
 * Stripe integration (planned)
 
----
+
 
 ## Version History
 
@@ -140,8 +166,9 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 | v1.4.0  | AI Reliability & Resilience                    | ✅      |
 | v1.5.0  | AI Observability & Monitoring                  | ✅      |
 | v1.6.0  | ATS Resume Optimization Engine                 | ✅      |
+| v1.7.0  | Resume Versioning & History                    | ✅      |
 
----
+
 
 ## Testing
 
@@ -158,14 +185,23 @@ The project includes:
 * Resume management tests
 * Cover letter tests
 * ATS optimization tests
+* Resume versioning tests
+* Resume restoration tests
 
----
+The project is maintained with a focus on:
+
+* Deterministic automated testing
+* Service and repository separation
+* Database transaction integrity
+* API-level integration coverage
+* AI provider isolation through fake providers
+
+
 
 ## Roadmap
 
 ### Upcoming
 
-* Resume Versioning & History
 * Subscription & Usage Limits
 * Stripe Billing
 * Resume Export (PDF/DOCX)
@@ -175,3 +211,24 @@ The project includes:
 * Docker Production Deployment
 * CI/CD Pipeline
 * Kubernetes Deployment
+
+
+
+## Completed Milestones
+
+The following major capabilities have been completed:
+
+* Authentication & User Management
+* Resume CRUD
+* Resume Content Management
+* AI Resume Generation
+* AI Cover Letter Generation
+* AI Provider Architecture
+* AI Retry & Resilience
+* AI Usage Tracking
+* AI Observability & Monitoring
+* ATS Resume Optimization
+* Resume Versioning & History
+
+**Current milestone:** `v1.7.0`  
+**Release status:** Complete and frozen

@@ -1,6 +1,7 @@
 from datetime import date
 from uuid import UUID
 
+from app.common.constants import ResumeVersionSource
 from app.projects.exceptions import (
     InvalidProjectDate,
     ProjectAccessDenied,
@@ -8,6 +9,7 @@ from app.projects.exceptions import (
 )
 from app.projects.models import Project
 from app.projects.repository import ProjectRepository
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
 
 
@@ -20,9 +22,11 @@ class ProjectService:
         self,
         repository: ProjectRepository,
         resume_repository: ResumeRepository,
-    ):
+        resume_version_service: ResumeVersionService,
+    ) -> None:
         self.repository = repository
         self.resume_repository = resume_repository
+        self.resume_version_service = resume_version_service
 
     def _verify_resume_owner(
         self,
@@ -86,7 +90,7 @@ class ProjectService:
         is_ongoing: bool,
         display_order: int,
     ) -> Project:
-        self._verify_resume_owner(
+        resume = self._verify_resume_owner(
             resume_id=resume_id,
             user_id=user_id,
         )
@@ -110,9 +114,20 @@ class ProjectService:
             display_order=display_order,
         )
 
-        return self.repository.create(
+        project = self.repository.create(
             project,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Project added to resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(project)
+
+        return project
 
     def list_projects(
         self,
@@ -187,9 +202,25 @@ class ProjectService:
         project.is_ongoing = is_ongoing
         project.display_order = display_order
 
-        return self.repository.update(
+        project = self.repository.update(
             project,
         )
+
+        resume = self._verify_resume_owner(
+            resume_id=project.resume_id,
+            user_id=user_id,
+        )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Project updated on resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(project)
+
+        return project
 
     def delete_project(
         self,
@@ -202,6 +233,19 @@ class ProjectService:
             project_id=project_id,
         )
 
+        resume = self._verify_resume_owner(
+            resume_id=project.resume_id,
+            user_id=user_id,
+        )
+
         self.repository.delete(
             project,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Project removed from resume.",
+        )
+
+        self.repository.db.commit()

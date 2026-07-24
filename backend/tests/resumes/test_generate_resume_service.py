@@ -6,6 +6,9 @@ import pytest
 from app.ai.service import AIService
 from app.ai_usage.repository import AIUsageRepository
 from app.ai_usage.service import AIUsageService
+from app.common.constants import ResumeVersionSource
+from app.resume_versions.repository import ResumeVersionRepository
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.ai_service import ResumeAIService
 from app.resumes.exceptions import (
     ResumeAccessDenied,
@@ -29,10 +32,15 @@ def service(db_session):
         provider=FakeAIProvider(),
     )
 
+    resume_version_service = ResumeVersionService(
+        ResumeVersionRepository(db_session),
+    )
+
     return ResumeAIService(
         repository=repository,
         ai_service=ai_service,
         ai_usage_service=ai_usage_service,
+        resume_version_service=resume_version_service,
     )
 
 
@@ -234,3 +242,88 @@ def test_regenerate_resume_overwrites_previous_content(
     )
 
     assert updated.generated_content != "Old Resume"
+
+
+def test_generate_resume_creates_ai_version(
+    service,
+    db_session,
+):
+    user = create_user(
+        db_session,
+        verified=True,
+    )
+
+    resume = create_resume(
+        db_session,
+        user_id=user.id,
+    )
+
+    updated = service.generate_resume(
+        user_id=user.id,
+        resume_id=resume.id,
+        target_job_title="Backend Engineer",
+        job_description="FastAPI backend role.",
+    )
+
+    repository = ResumeVersionRepository(
+        db_session,
+    )
+
+    version = repository.get_latest(
+        resume_id=updated.id,
+    )
+
+    assert version is not None
+    assert version.version_number == 1
+    assert version.source == ResumeVersionSource.AI
+
+    assert version.snapshot["generated_content"] == (updated.generated_content)
+
+    assert version.snapshot["generated_at"] == (updated.generated_at.isoformat())
+
+
+def test_regenerate_resume_creates_new_ai_version(
+    service,
+    db_session,
+):
+    user = create_user(
+        db_session,
+        verified=True,
+    )
+
+    resume = create_resume(
+        db_session,
+        user_id=user.id,
+    )
+
+    first = service.generate_resume(
+        user_id=user.id,
+        resume_id=resume.id,
+        target_job_title="Backend Engineer",
+        job_description="FastAPI backend role.",
+    )
+
+    second = service.generate_resume(
+        user_id=user.id,
+        resume_id=resume.id,
+        target_job_title="Senior Backend Engineer",
+        job_description="Senior FastAPI backend role.",
+    )
+
+    repository = ResumeVersionRepository(
+        db_session,
+    )
+
+    versions = repository.list_by_resume(
+        resume_id=resume.id,
+    )
+
+    assert len(versions) == 2
+
+    assert versions[0].version_number == 2
+    assert versions[0].source == ResumeVersionSource.AI
+    assert versions[0].snapshot["generated_content"] == second.generated_content
+
+    assert versions[1].version_number == 1
+    assert versions[1].source == ResumeVersionSource.AI
+    assert versions[1].snapshot["generated_content"] == first.generated_content

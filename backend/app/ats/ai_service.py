@@ -35,13 +35,11 @@ class ATSAIService:
             target_job_title=target_job_title,
         )
 
-        
         result = self.ai_service.generate_ats_optimization(
             request,
             user_id=user_id,
             resume_id=resume_id,
         )
-
 
         score, matched, missing = ATSScoringService.score(
             resume=result.content,

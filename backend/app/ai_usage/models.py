@@ -111,6 +111,7 @@ class AIUsage(Base):
     status: Mapped[AIRequestStatus] = mapped_column(
         ai_request_status_enum,
         nullable=False,
+        index=True,
     )
 
     error_message: Mapped[str | None] = mapped_column(

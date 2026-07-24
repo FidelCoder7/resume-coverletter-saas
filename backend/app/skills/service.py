@@ -1,6 +1,7 @@
 from uuid import UUID
 
-from app.common.constants import SkillLevel
+from app.common.constants import ResumeVersionSource, SkillLevel
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
 from app.skills.exceptions import (
     SkillAccessDenied,
@@ -19,9 +20,11 @@ class SkillService:
         self,
         repository: SkillRepository,
         resume_repository: ResumeRepository,
-    ):
+        resume_version_service: ResumeVersionService,
+    ) -> None:
         self.repository = repository
         self.resume_repository = resume_repository
+        self.resume_version_service = resume_version_service
 
     def _verify_resume_owner(
         self,
@@ -58,7 +61,7 @@ class SkillService:
         proficiency: SkillLevel,
         display_order: int,
     ) -> Skill:
-        self._verify_resume_owner(
+        resume = self._verify_resume_owner(
             resume_id=resume_id,
             user_id=user_id,
         )
@@ -70,9 +73,20 @@ class SkillService:
             display_order=display_order,
         )
 
-        return self.repository.create(
+        skill = self.repository.create(
             skill,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Skill added to resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(skill)
+
+        return skill
 
     def list_skills(
         self,
@@ -129,9 +143,25 @@ class SkillService:
         skill.proficiency = proficiency
         skill.display_order = display_order
 
-        return self.repository.update(
+        skill = self.repository.update(
             skill,
         )
+
+        resume = self._verify_resume_owner(
+            resume_id=skill.resume_id,
+            user_id=user_id,
+        )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Skill updated on resume.",
+        )
+
+        self.repository.db.commit()
+        self.repository.db.refresh(skill)
+
+        return skill
 
     def delete_skill(
         self,
@@ -144,6 +174,19 @@ class SkillService:
             skill_id=skill_id,
         )
 
+        resume = self._verify_resume_owner(
+            resume_id=skill.resume_id,
+            user_id=user_id,
+        )
+
         self.repository.delete(
             skill,
         )
+
+        self.resume_version_service.create_version_from_resume(
+            resume=resume,
+            source=ResumeVersionSource.USER,
+            change_summary="Skill removed from resume.",
+        )
+
+        self.repository.db.commit()

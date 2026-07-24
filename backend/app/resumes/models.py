@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from app.educations.models import Education
     from app.experiences.models import Experience
     from app.projects.models import Project
+    from app.resume_versions.models import ResumeVersion
     from app.users.models import User
 
 
@@ -99,6 +100,13 @@ class Resume(Base):
         back_populates="resume",
         cascade="all, delete-orphan",
         order_by="Certification.display_order",
+    )
+
+    versions: Mapped[list["ResumeVersion"]] = relationship(
+        "ResumeVersion",
+        back_populates="resume",
+        cascade="all, delete-orphan",
+        order_by="ResumeVersion.version_number",
     )
 
     cover_letters: Mapped[list["CoverLetter"]] = relationship(

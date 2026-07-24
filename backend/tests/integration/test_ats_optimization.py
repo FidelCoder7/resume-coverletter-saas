@@ -13,6 +13,8 @@ from app.common.constants import (
     AIFeature,
     AIRequestStatus,
 )
+from app.resume_versions.repository import ResumeVersionRepository
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
@@ -48,6 +50,10 @@ def test_ats_optimization_creates_ai_usage_record(
         metadata=metadata,
     )
 
+    resume_version_service = ResumeVersionService(
+        ResumeVersionRepository(db_session),
+    )
+
     ats_service = ATSService(
         repository=ResumeRepository(db_session),
         ai_service=ATSAIService(
@@ -56,6 +62,7 @@ def test_ats_optimization_creates_ai_usage_record(
                 AIUsageRepository(db_session),
             ),
         ),
+        resume_version_service=resume_version_service,
     )
 
     response = ats_service.optimize_resume(

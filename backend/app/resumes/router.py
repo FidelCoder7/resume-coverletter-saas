@@ -10,6 +10,7 @@ from app.resumes.dependencies import (
 )
 from app.resumes.schemas import (
     CreateResumeRequest,
+    ImportResumeRequest,
     ResumeGenerationRequest,
     ResumeListResponse,
     ResumeResponse,
@@ -38,6 +39,28 @@ def create_resume(
         user_id=current_user.id,
         title=payload.title,
         summary=payload.summary,
+    )
+
+
+@router.post(
+    "/import",
+    response_model=ResumeResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def import_resume(
+    payload: ImportResumeRequest,
+    current_user: User = Depends(get_current_user),
+    service: ResumeService = Depends(get_resume_service),
+):
+    """
+    Import a complete resume with all associated content.
+
+    The imported resume receives an initial IMPORT version.
+    """
+
+    return service.import_resume(
+        user_id=current_user.id,
+        payload=payload,
     )
 
 

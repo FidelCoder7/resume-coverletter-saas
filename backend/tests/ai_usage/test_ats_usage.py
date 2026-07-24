@@ -72,7 +72,6 @@ def test_successful_ats_optimization_records_ai_usage():
     assert metadata.latency_ms == 650
 
 
-
 def test_failed_ats_optimization_does_not_record_success():
     ai_service = MagicMock()
 

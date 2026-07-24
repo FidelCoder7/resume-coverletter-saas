@@ -26,7 +26,7 @@ class EducationRepository:
         """
 
         self.db.add(education)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(education)
 
         return education
@@ -74,7 +74,7 @@ class EducationRepository:
         Persist updates to an education.
         """
 
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(education)
 
         return education
@@ -88,4 +88,4 @@ class EducationRepository:
         """
 
         self.db.delete(education)
-        self.db.commit()
+        self.db.flush()

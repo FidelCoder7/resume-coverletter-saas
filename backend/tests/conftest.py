@@ -26,9 +26,15 @@ from app.cover_letters.repository import CoverLetterRepository
 from app.database.session import get_db
 from app.mail.service import MailService
 from app.main import app
+from app.resume_versions.repository import ResumeVersionRepository
+from app.resume_versions.service import ResumeVersionService
 from app.resumes.ai_service import ResumeAIService
 from app.resumes.dependencies import get_resume_ai_service
 from app.resumes.repository import ResumeRepository
+from tests.factories.user_factory import (
+    DEFAULT_PASSWORD,
+    create_user,
+)
 from tests.fakes.fake_ai_provider import FakeAIProvider
 
 
@@ -170,10 +176,15 @@ def client(
             AIUsageRepository(db_session),
         )
 
+        resume_version_service = ResumeVersionService(
+            ResumeVersionRepository(db_session),
+        )
+
         return ResumeAIService(
             repository=repository,
             ai_service=fake_ai_service,
             ai_usage_service=ai_usage_service,
+            resume_version_service=resume_version_service,
         )
 
     app.dependency_overrides[get_db] = override_get_db
@@ -206,6 +217,47 @@ def client(
 
     limiter.enabled = True
     app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def authenticated_client(
+    client: TestClient,
+    db_session: Session,
+):
+    """
+    TestClient authenticated as a newly created test user.
+
+    Returns:
+        A tuple containing:
+        - authenticated TestClient
+        - authenticated User
+    """
+
+    user = create_user(
+        db_session,
+        password=DEFAULT_PASSWORD,
+        verified=True,
+    )
+
+    response = client.post(
+        "/auth/login",
+        data={
+            "username": user.email,
+            "password": DEFAULT_PASSWORD,
+        },
+    )
+
+    assert response.status_code == 200
+
+    access_token = response.json()["access_token"]
+
+    client.headers.update(
+        {
+            "Authorization": f"Bearer {access_token}",
+        }
+    )
+
+    return client, user
 
 
 @pytest.fixture(autouse=True)

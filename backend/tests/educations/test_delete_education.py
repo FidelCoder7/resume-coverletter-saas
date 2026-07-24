@@ -1,3 +1,5 @@
+from app.common.constants import ResumeVersionSource
+from app.resume_versions.models import ResumeVersion
 from tests.factories.education_factory import create_education
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import (
@@ -80,3 +82,67 @@ def test_delete_education_requires_authentication(
     )
 
     assert response.status_code == 401
+
+
+def test_delete_education_creates_resume_version(
+    client,
+    db_session,
+):
+    user = create_user(
+        db_session,
+        email="version-delete@example.com",
+        password=DEFAULT_PASSWORD,
+        verified=True,
+    )
+
+    resume = create_resume(
+        db_session,
+        user_id=user.id,
+    )
+
+    education = create_education(
+        db_session,
+        resume_id=resume.id,
+    )
+
+    login = client.post(
+        "/auth/login",
+        data={
+            "username": user.email,
+            "password": DEFAULT_PASSWORD,
+        },
+    )
+
+    token = login.json()["access_token"]
+
+    response = client.delete(
+        f"/api/educations/{education.id}",
+        headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
+
+    assert response.status_code == 204
+
+    db_session.expire_all()
+
+    versions = (
+        db_session.query(ResumeVersion)
+        .filter(
+            ResumeVersion.resume_id == resume.id,
+        )
+        .order_by(
+            ResumeVersion.version_number.asc(),
+        )
+        .all()
+    )
+
+    assert len(versions) == 1
+
+    version = versions[0]
+
+    assert version.version_number == 1
+    assert version.source == ResumeVersionSource.USER
+    assert version.change_summary == "Education removed from resume."
+
+    assert version.snapshot["educations"] == []

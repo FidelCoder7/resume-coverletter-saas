@@ -6,6 +6,7 @@ import pytest
 from app.ai.schemas import ATSOptimizationResult
 from app.ats.schemas import ATSOptimizationResponse
 from app.ats.service import ATSService
+from app.common.constants import ResumeVersionSource
 from app.resumes.exceptions import (
     ResumeAccessDenied,
     ResumeNotFound,
@@ -23,13 +24,20 @@ def ai_service():
 
 
 @pytest.fixture
+def resume_version_service():
+    return MagicMock()
+
+
+@pytest.fixture
 def service(
     repository,
     ai_service,
+    resume_version_service,
 ):
     return ATSService(
         repository=repository,
         ai_service=ai_service,
+        resume_version_service=resume_version_service,
     )
 
 
@@ -44,27 +52,8 @@ def build_resume(
     return resume
 
 
-def test_optimize_resume_success(
-    service,
-    repository,
-    ai_service,
-    monkeypatch,
-):
-    user_id = uuid4()
-    resume_id = uuid4()
-
-    resume = build_resume(
-        user_id,
-    )
-
-    repository.get_for_generation.return_value = resume
-
-    monkeypatch.setattr(
-        "app.ats.service.ResumeFormatter.format",
-        lambda _: "formatted resume",
-    )
-
-    ai_service.optimize.return_value = ATSOptimizationResult(
+def build_optimization_result():
+    return ATSOptimizationResult(
         optimized_resume="Optimized resume",
         ats_score=91,
         matched_keywords=["python"],
@@ -72,9 +61,44 @@ def test_optimize_resume_success(
         recommendations=["Add AWS"],
     )
 
+
+def configure_successful_optimization(
+    repository,
+    ai_service,
+    resume,
+    monkeypatch,
+):
+    repository.get_for_generation.return_value = resume
+    repository.update.return_value = resume
+
+    monkeypatch.setattr(
+        "app.ats.service.ResumeFormatter.format",
+        lambda _: "formatted resume",
+    )
+
+    ai_service.optimize.return_value = build_optimization_result()
+
+
+def test_optimize_resume_success(
+    service,
+    repository,
+    ai_service,
+    resume_version_service,
+    monkeypatch,
+):
+    user_id = uuid4()
+    resume = build_resume(user_id)
+
+    configure_successful_optimization(
+        repository,
+        ai_service,
+        resume,
+        monkeypatch,
+    )
+
     result = service.optimize_resume(
         user_id=user_id,
-        resume_id=resume_id,
+        resume_id=resume.id,
         job_description="Python AWS",
         target_job_title="Backend Engineer",
     )
@@ -84,9 +108,19 @@ def test_optimize_resume_success(
         ATSOptimizationResponse,
     )
 
-    assert result.resume_id == resume_id
+    assert result.resume_id == resume.id
     assert result.optimized_resume == "Optimized resume"
     assert result.ats_score == 91
+
+    repository.update.assert_called_once_with(
+        resume,
+    )
+
+    resume_version_service.create_version_from_resume.assert_called_once_with(
+        resume=resume,
+        source=ResumeVersionSource.ATS,
+        change_summary="Resume optimized for ATS for Backend Engineer.",
+    )
 
 
 def test_resume_not_found(
@@ -140,6 +174,7 @@ def test_formatter_called(
     )
 
     repository.get_for_generation.return_value = resume
+    repository.update.return_value = resume
 
     formatter = MagicMock(
         return_value="formatted",
@@ -150,13 +185,7 @@ def test_formatter_called(
         formatter,
     )
 
-    ai_service.optimize.return_value = ATSOptimizationResult(
-        optimized_resume="Optimized resume",
-        ats_score=91,
-        matched_keywords=["python"],
-        missing_keywords=["aws"],
-        recommendations=["Add AWS"],
-    )
+    ai_service.optimize.return_value = build_optimization_result()
 
     service.optimize_resume(
         user_id=user_id,
@@ -183,19 +212,14 @@ def test_ai_service_receives_formatted_resume(
     )
 
     repository.get_for_generation.return_value = resume
+    repository.update.return_value = resume
 
     monkeypatch.setattr(
         "app.ats.service.ResumeFormatter.format",
         lambda _: "FORMATTED",
     )
 
-    ai_service.optimize.return_value = ATSOptimizationResult(
-        optimized_resume="Optimized resume",
-        ats_score=91,
-        matched_keywords=["python"],
-        missing_keywords=["aws"],
-        recommendations=["Add AWS"],
-    )
+    ai_service.optimize.return_value = build_optimization_result()
 
     service.optimize_resume(
         user_id=user_id,
@@ -226,19 +250,14 @@ def test_returns_response_model(
     )
 
     repository.get_for_generation.return_value = resume
+    repository.update.return_value = resume
 
     monkeypatch.setattr(
         "app.ats.service.ResumeFormatter.format",
         lambda _: "",
     )
 
-    ai_service.optimize.return_value = ATSOptimizationResult(
-        optimized_resume="Optimized resume",
-        ats_score=91,
-        matched_keywords=["python"],
-        missing_keywords=["aws"],
-        recommendations=["Add AWS"],
-    )
+    ai_service.optimize.return_value = build_optimization_result()
 
     response = service.optimize_resume(
         user_id=user_id,
@@ -256,3 +275,71 @@ def test_returns_response_model(
     assert response.missing_keywords == [
         "aws",
     ]
+
+
+def test_ats_optimization_creates_ats_resume_version(
+    service,
+    repository,
+    ai_service,
+    resume_version_service,
+    monkeypatch,
+):
+    user_id = uuid4()
+
+    resume = build_resume(
+        user_id,
+    )
+
+    configure_successful_optimization(
+        repository,
+        ai_service,
+        resume,
+        monkeypatch,
+    )
+
+    service.optimize_resume(
+        user_id=user_id,
+        resume_id=resume.id,
+        job_description="Python AWS",
+        target_job_title="Backend Engineer",
+    )
+
+    resume_version_service.create_version_from_resume.assert_called_once_with(
+        resume=resume,
+        source=ResumeVersionSource.ATS,
+        change_summary="Resume optimized for ATS for Backend Engineer.",
+    )
+
+
+def test_ats_optimization_creates_ats_version_without_target_job_title(
+    service,
+    repository,
+    ai_service,
+    resume_version_service,
+    monkeypatch,
+):
+    user_id = uuid4()
+
+    resume = build_resume(
+        user_id,
+    )
+
+    configure_successful_optimization(
+        repository,
+        ai_service,
+        resume,
+        monkeypatch,
+    )
+
+    service.optimize_resume(
+        user_id=user_id,
+        resume_id=resume.id,
+        job_description="Python AWS",
+        target_job_title=None,
+    )
+
+    resume_version_service.create_version_from_resume.assert_called_once_with(
+        resume=resume,
+        source=ResumeVersionSource.ATS,
+        change_summary="Resume optimized for ATS.",
+    )
