@@ -18,6 +18,7 @@ from app.refresh_tokens.models import RefreshToken
 from app.resume_versions.models import ResumeVersion
 from app.resumes.models import Resume
 from app.skills.models import Skill
+from app.subscriptions.models import PlanLimit
 from app.users.models import User
 
 __all__ = (
@@ -35,4 +36,5 @@ __all__ = (
     "PasswordResetToken",
     "Skill",
     "Project",
+    "PlanLimit",
 )

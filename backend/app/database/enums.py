@@ -7,6 +7,7 @@ from app.common.constants import (
     EmploymentType,
     ResumeVersionSource,
     SkillLevel,
+    SubscriptionLimitPeriod,
     SubscriptionPlan,
     UserRole,
 )
@@ -24,6 +25,13 @@ account_status_enum = Enum(
 subscription_plan_enum = Enum(
     SubscriptionPlan,
     name="subscription_plan",
+)
+
+subscription_limit_period_enum = Enum(
+    SubscriptionLimitPeriod,
+    name="subscription_limit_period",
+    values_callable=lambda enum_class: [member.value for member in enum_class],
+    create_type=True,
 )
 
 employment_type_enum = Enum(
@@ -55,3 +63,4 @@ resume_version_source_enum = Enum(
     values_callable=lambda enum_class: [member.value for member in enum_class],
     create_type=True,
 )
+

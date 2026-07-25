@@ -23,6 +23,9 @@ class SubscriptionPlan(StrEnum):
     FREE = "free"
     PRO = "pro"
 
+class SubscriptionLimitPeriod(StrEnum):
+    MONTHLY = "monthly"
+
 
 class EmploymentType(StrEnum):
     FULL_TIME = "full_time"
