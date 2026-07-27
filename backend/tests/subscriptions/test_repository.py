@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from app.common.constants import (
     AIFeature,
     SubscriptionLimitPeriod,
@@ -34,7 +36,9 @@ def test_get_by_id_returns_plan_limit(
         period=SubscriptionLimitPeriod.MONTHLY,
     )
 
-    result = repository.get_by_id(existing.id)
+    result = repository.get_by_id(
+        existing.id,
+    )
 
     assert result is not None
     assert result.id == existing.id
@@ -48,7 +52,7 @@ def test_get_by_id_returns_none_for_unknown_id(
     repository = PlanLimitRepository(db_session)
 
     result = repository.get_by_id(
-        plan_limit_id := __import__("uuid").uuid4(),
+        uuid4(),
     )
 
     assert result is None

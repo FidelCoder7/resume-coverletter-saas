@@ -4,8 +4,8 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 
 ## Current Status
 
-**Current Version:** **v1.7.0**  
-**Status:** Resume Versioning & History completed and frozen
+**Current Version:** **v1.8.0**  
+**Status:** Subscription & Usage Limits completed and frozen
 
 
 
@@ -26,6 +26,7 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Rate limiting
 * Security headers
 
+
 ### Resume Management
 
 * Resume CRUD
@@ -42,6 +43,7 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Immutable historical versions
 * Restore operations create new version history entries
 * Full nested resume content restoration
+
 
 ### Resume Versioning & History
 
@@ -61,11 +63,13 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Internal service-layer version creation
 * No public manual version creation endpoint
 
+
 ### Cover Letter Management
 
 * Cover letter CRUD
 * AI-powered cover letter generation
 * AI cover letter regeneration
+
 
 ### AI Resume Features
 
@@ -80,6 +84,7 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Structured AI logging and monitoring
 * ATS resume optimization
 
+
 ### ATS Resume Optimization
 
 * AI-powered resume optimization
@@ -91,6 +96,32 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Optimization recommendations framework
 * AI usage tracking for ATS optimization
 
+
+### Subscription & Usage Limits
+
+* Subscription plan architecture
+* Free and Pro subscription plans
+* Plan-specific AI feature limits
+* Monthly usage periods
+* Resume generation limits
+* Cover letter generation limits
+* Cover letter regeneration limits
+* ATS optimization limits
+* Plan limit persistence
+* Plan limit repository
+* Plan limit service layer
+* Usage status calculation
+* Current-period AI usage tracking
+* Remaining usage calculation
+* Subscription limit enforcement
+* Feature-specific usage tracking
+* Subscription limit exceeded handling
+* Plan limit API endpoints
+* Authenticated subscription limit access
+* Database-seeded default plan limits
+* Deterministic subscription and usage limit tests
+
+
 ### Platform Architecture
 
 * Repository pattern
@@ -100,6 +131,9 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Pydantic v2
 * Alembic migrations
 * Modular API architecture
+* Provider-agnostic AI architecture
+* Subscription-aware AI workflows
+
 
 ### Quality & Testing
 
@@ -109,6 +143,11 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Fake AI provider for deterministic testing
 * Production-ready testing infrastructure
 * Resume versioning and restore workflow tests
+* Subscription and usage limit tests
+* Plan limit repository tests
+* Subscription service tests
+* Subscription API tests
+* AI usage tracking tests
 
 
 
@@ -130,18 +169,28 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Retry framework
 * AI usage analytics
 * Prompt engineering
+* AI observability
+* ATS optimization
 
 ### Frontend
 
 * React
 * Vite
 
+### Payments & Subscriptions
+
+* Subscription plan architecture
+* Usage-based feature limits
+* Monthly quota enforcement
+* Stripe integration (planned)
+* Pesapal integration (planned)
+
 ### DevOps
 
 * Docker
 * Docker Compose
 * GitHub Actions (planned)
-* Stripe integration (planned)
+* Production deployment (planned)
 
 
 
@@ -167,6 +216,7 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 | v1.5.0  | AI Observability & Monitoring                  | ✅      |
 | v1.6.0  | ATS Resume Optimization Engine                 | ✅      |
 | v1.7.0  | Resume Versioning & History                    | ✅      |
+| v1.8.0  | Subscription & Usage Limits                    | ✅      |
 
 
 
@@ -187,6 +237,9 @@ The project includes:
 * ATS optimization tests
 * Resume versioning tests
 * Resume restoration tests
+* Subscription tests
+* Plan limit tests
+* Usage enforcement tests
 
 The project is maintained with a focus on:
 
@@ -195,6 +248,9 @@ The project is maintained with a focus on:
 * Database transaction integrity
 * API-level integration coverage
 * AI provider isolation through fake providers
+* Subscription limit enforcement
+* Feature-specific usage tracking
+* Test database isolation
 
 
 
@@ -202,8 +258,11 @@ The project is maintained with a focus on:
 
 ### Upcoming
 
-* Subscription & Usage Limits
-* Stripe Billing
+* Billing & Payment Integration
+* Pesapal payment integration
+* Subscription lifecycle management
+* Subscription activation and renewal
+* Payment transaction tracking
 * Resume Export (PDF/DOCX)
 * Public Resume Sharing
 * Recruiter Portal
@@ -229,6 +288,7 @@ The following major capabilities have been completed:
 * AI Observability & Monitoring
 * ATS Resume Optimization
 * Resume Versioning & History
+* Subscription & Usage Limits
 
-**Current milestone:** `v1.7.0`  
+**Current milestone:** `v1.8.0`  
 **Release status:** Complete and frozen
