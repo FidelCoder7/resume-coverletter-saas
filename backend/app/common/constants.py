@@ -23,6 +23,7 @@ class SubscriptionPlan(StrEnum):
     FREE = "free"
     PRO = "pro"
 
+
 class SubscriptionLimitPeriod(StrEnum):
     MONTHLY = "monthly"
 

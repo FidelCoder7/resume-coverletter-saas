@@ -1,5 +1,4 @@
 from datetime import UTC, datetime
-from uuid import UUID
 
 from app.ai.contracts import AIExecutionResult
 from app.ai.formatters import ResumeFormatter
@@ -17,6 +16,8 @@ from app.resumes.exceptions import (
 )
 from app.resumes.models import Resume
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.service import SubscriptionService
+from app.users.models import User
 
 
 class ResumeAIService:
@@ -30,17 +31,19 @@ class ResumeAIService:
         ai_service: AIService,
         ai_usage_service: AIUsageService,
         resume_version_service: ResumeVersionService,
+        subscription_service: SubscriptionService,
     ) -> None:
         self.repository = repository
         self.ai_service = ai_service
         self.ai_usage_service = ai_usage_service
         self.resume_version_service = resume_version_service
+        self.subscription_service = subscription_service
 
     def _verify_resume_owner(
         self,
         *,
-        resume_id: UUID,
-        user_id: UUID,
+        resume_id,
+        user: User,
     ) -> Resume:
         """
         Retrieve a resume with all related entities loaded and
@@ -56,18 +59,32 @@ class ResumeAIService:
                 "Resume not found.",
             )
 
-        if resume.user_id != user_id:
+        if resume.user_id != user.id:
             raise ResumeAccessDenied(
                 "You do not have permission to access this resume.",
             )
 
         return resume
 
+    def _check_generation_limit(
+        self,
+        *,
+        user: User,
+    ) -> None:
+        """
+        Enforce the user's subscription limit for AI resume generation.
+        """
+
+        self.subscription_service.check_limit(
+            user=user,
+            feature=AIFeature.RESUME_GENERATION,
+        )
+
     def _record_ai_usage(
         self,
         *,
-        user_id: UUID,
-        resume_id: UUID,
+        user_id,
+        resume_id,
         result: AIExecutionResult[str],
     ) -> None:
         """
@@ -84,8 +101,8 @@ class ResumeAIService:
     def generate_resume(
         self,
         *,
-        user_id: UUID,
-        resume_id: UUID,
+        user: User,
+        resume_id,
         target_job_title: str | None,
         job_description: str | None,
     ) -> Resume:
@@ -93,11 +110,17 @@ class ResumeAIService:
         Generate or refresh the AI-rendered version of a resume.
 
         A successful generation creates an immutable AI version snapshot.
+
+        Subscription limits are checked before any AI execution occurs.
         """
 
         resume = self._verify_resume_owner(
             resume_id=resume_id,
-            user_id=user_id,
+            user=user,
+        )
+
+        self._check_generation_limit(
+            user=user,
         )
 
         ai_request = ResumeGenerationRequest(
@@ -111,13 +134,13 @@ class ResumeAIService:
         try:
             ai_result = self.ai_service.generate_resume(
                 ai_request,
-                user_id=user_id,
+                user_id=user.id,
                 resume_id=resume_id,
             )
 
         except Exception as exc:
             self.ai_usage_service.record_failure(
-                user_id=user_id,
+                user_id=user.id,
                 resume_id=resume.id,
                 feature=AIFeature.RESUME_GENERATION,
                 metadata=self.ai_service.provider.execution_metadata(),
@@ -142,7 +165,7 @@ class ResumeAIService:
         )
 
         self._record_ai_usage(
-            user_id=user_id,
+            user_id=user.id,
             resume_id=resume.id,
             result=ai_result,
         )

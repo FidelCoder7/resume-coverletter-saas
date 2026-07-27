@@ -58,7 +58,7 @@ def generate_cover_letter(
     service: CoverLetterAIService = Depends(get_cover_letter_ai_service),
 ):
     return service.generate_cover_letter(
-        user_id=current_user.id,
+        user=current_user,
         resume_id=resume_id,
         title=payload.title,
         company_name=payload.company_name,
@@ -78,7 +78,7 @@ def regenerate_cover_letter(
     service: CoverLetterAIService = Depends(get_cover_letter_ai_service),
 ):
     return service.regenerate_cover_letter(
-        user_id=current_user.id,
+        user=current_user,
         cover_letter_id=cover_letter_id,
         job_description=payload.job_description,
     )

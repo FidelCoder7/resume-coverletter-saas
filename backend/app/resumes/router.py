@@ -107,7 +107,7 @@ def generate_resume(
     """
 
     return service.generate_resume(
-        user_id=current_user.id,
+        user=current_user,
         resume_id=resume_id,
         target_job_title=payload.target_job_title,
         job_description=payload.job_description,

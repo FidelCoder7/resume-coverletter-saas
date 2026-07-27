@@ -11,6 +11,8 @@ from app.resume_versions.service import ResumeVersionService
 from app.resumes.ai_service import ResumeAIService
 from app.resumes.repository import ResumeRepository
 from app.resumes.service import ResumeService
+from app.subscriptions.dependencies import get_subscription_service
+from app.subscriptions.service import SubscriptionService
 
 
 def get_resume_service(
@@ -38,6 +40,9 @@ def get_resume_ai_service(
     resume_version_service: ResumeVersionService = Depends(
         get_resume_version_service,
     ),
+    subscription_service: SubscriptionService = Depends(
+        get_subscription_service,
+    ),
 ) -> ResumeAIService:
     """
     Dependency for AI-powered resume generation.
@@ -54,4 +59,5 @@ def get_resume_ai_service(
         ai_service=ai_service,
         ai_usage_service=ai_usage_service,
         resume_version_service=resume_version_service,
+        subscription_service=subscription_service,
     )

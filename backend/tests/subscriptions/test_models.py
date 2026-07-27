@@ -9,6 +9,7 @@ from app.common.constants import (
     SubscriptionPlan,
 )
 from app.subscriptions.models import PlanLimit
+from app.subscriptions.repository import PlanLimitRepository
 
 
 def make_plan_limit(
@@ -27,37 +28,33 @@ def make_plan_limit(
     )
 
 
-def test_plan_limit_can_be_created(
+def test_seeded_plan_limit_exists(
     db_session,
 ):
-    plan_limit = make_plan_limit()
+    repository = PlanLimitRepository(db_session)
 
-    db_session.add(plan_limit)
-    db_session.commit()
-    db_session.refresh(plan_limit)
+    plan_limit = repository.get_by_plan_and_feature(
+        subscription_plan=SubscriptionPlan.FREE,
+        feature=AIFeature.RESUME_GENERATION,
+        period=SubscriptionLimitPeriod.MONTHLY,
+    )
 
-    assert plan_limit.id is not None
+    assert plan_limit is not None
     assert plan_limit.subscription_plan == SubscriptionPlan.FREE
     assert plan_limit.feature == AIFeature.RESUME_GENERATION
-    assert plan_limit.limit_value == 5
+    assert plan_limit.limit_value == 3
     assert plan_limit.period == SubscriptionLimitPeriod.MONTHLY
 
 
 def test_plan_limit_persists_enum_values_correctly(
     db_session,
 ):
-    plan_limit = make_plan_limit(
+    repository = PlanLimitRepository(db_session)
+
+    persisted = repository.get_by_plan_and_feature(
         subscription_plan=SubscriptionPlan.PRO,
         feature=AIFeature.ATS_OPTIMIZATION,
-    )
-
-    db_session.add(plan_limit)
-    db_session.commit()
-    db_session.expire_all()
-
-    persisted = db_session.get(
-        PlanLimit,
-        plan_limit.id,
+        period=SubscriptionLimitPeriod.MONTHLY,
     )
 
     assert persisted is not None
@@ -69,22 +66,12 @@ def test_plan_limit_persists_enum_values_correctly(
 def test_plan_limit_requires_unique_plan_feature_period_combination(
     db_session,
 ):
-    first_limit = make_plan_limit(
+    duplicate = make_plan_limit(
         subscription_plan=SubscriptionPlan.FREE,
         feature=AIFeature.RESUME_GENERATION,
-        period=SubscriptionLimitPeriod.MONTHLY,
     )
 
-    second_limit = make_plan_limit(
-        subscription_plan=SubscriptionPlan.FREE,
-        feature=AIFeature.RESUME_GENERATION,
-        period=SubscriptionLimitPeriod.MONTHLY,
-    )
-
-    db_session.add(first_limit)
-    db_session.commit()
-
-    db_session.add(second_limit)
+    db_session.add(duplicate)
 
     with pytest.raises(IntegrityError):
         db_session.commit()
@@ -92,51 +79,18 @@ def test_plan_limit_requires_unique_plan_feature_period_combination(
     db_session.rollback()
 
 
-def test_plan_limit_allows_same_feature_for_different_plans(
+def test_seed_contains_expected_number_of_plan_limits(
     db_session,
 ):
-    free_limit = make_plan_limit(
+    repository = PlanLimitRepository(db_session)
+
+    free = repository.list_by_plan(
         subscription_plan=SubscriptionPlan.FREE,
-        feature=AIFeature.RESUME_GENERATION,
     )
 
-    pro_limit = make_plan_limit(
+    pro = repository.list_by_plan(
         subscription_plan=SubscriptionPlan.PRO,
-        feature=AIFeature.RESUME_GENERATION,
     )
 
-    db_session.add_all(
-        [
-            free_limit,
-            pro_limit,
-        ],
-    )
-
-    db_session.commit()
-
-    assert free_limit.id != pro_limit.id
-    assert free_limit.subscription_plan == SubscriptionPlan.FREE
-    assert pro_limit.subscription_plan == SubscriptionPlan.PRO
-
-
-def test_plan_limit_allows_different_features_for_same_plan(
-    db_session,
-):
-    resume_limit = make_plan_limit(
-        feature=AIFeature.RESUME_GENERATION,
-    )
-
-    ats_limit = make_plan_limit(
-        feature=AIFeature.ATS_OPTIMIZATION,
-    )
-
-    db_session.add_all(
-        [
-            resume_limit,
-            ats_limit,
-        ],
-    )
-
-    db_session.commit()
-
-    assert resume_limit.feature != ats_limit.feature
+    assert len(free) == 4
+    assert len(pro) == 4

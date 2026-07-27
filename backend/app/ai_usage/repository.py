@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.ai_usage.models import AIUsage
-from app.common.constants import AIRequestStatus
+from app.common.constants import AIFeature, AIRequestStatus
 
 
 class AIUsageRepository:
@@ -29,12 +29,25 @@ class AIUsageRepository:
         user_id: UUID,
         start_date: datetime,
         end_date: datetime,
+        feature: AIFeature | None = None,
     ) -> tuple:
-        return (
+        """
+        Build common filters for usage queries within a time period.
+
+        When a feature is supplied, usage is restricted to that
+        specific AI feature.
+        """
+
+        filters = (
             AIUsage.user_id == user_id,
             AIUsage.created_at >= start_date,
             AIUsage.created_at < end_date,
         )
+
+        if feature is not None:
+            filters += (AIUsage.feature == feature,)
+
+        return filters
 
     def create(
         self,
@@ -153,10 +166,11 @@ class AIUsageRepository:
             )
         )
 
-    def count_by_user_and_period(
+    def count_by_user_and_feature_and_period(
         self,
         *,
         user_id: UUID,
+        feature: AIFeature,
         start_date: datetime,
         end_date: datetime,
     ) -> int:
@@ -169,6 +183,7 @@ class AIUsageRepository:
         ).where(
             *self._period_filter(
                 user_id=user_id,
+                feature=feature,
                 start_date=start_date,
                 end_date=end_date,
             )

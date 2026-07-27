@@ -18,6 +18,7 @@ def make_user(
     full_name: str = "Test User",
     verified: bool = True,
     google_id: str | None = None,
+    subscription_plan: SubscriptionPlan = SubscriptionPlan.FREE,
 ) -> User:
     """
     Build a User instance without persisting it.
@@ -31,7 +32,7 @@ def make_user(
         google_id=google_id,
         is_email_verified=verified,
         role=UserRole.USER,
-        subscription_plan=SubscriptionPlan.FREE,
+        subscription_plan=subscription_plan,
         status=AccountStatus.ACTIVE,
     )
 

@@ -31,6 +31,8 @@ from app.resume_versions.service import ResumeVersionService
 from app.resumes.ai_service import ResumeAIService
 from app.resumes.dependencies import get_resume_ai_service
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.repository import PlanLimitRepository
+from app.subscriptions.service import SubscriptionService
 from tests.factories.user_factory import (
     DEFAULT_PASSWORD,
     create_user,
@@ -180,11 +182,17 @@ def client(
             ResumeVersionRepository(db_session),
         )
 
+        subscription_service = SubscriptionService(
+            repository=PlanLimitRepository(db_session),
+            ai_usage_repository=AIUsageRepository(db_session),
+        )
+
         return ResumeAIService(
             repository=repository,
             ai_service=fake_ai_service,
             ai_usage_service=ai_usage_service,
             resume_version_service=resume_version_service,
+            subscription_service=subscription_service,
         )
 
     app.dependency_overrides[get_db] = override_get_db
@@ -199,11 +207,17 @@ def client(
             AIUsageRepository(db_session),
         )
 
+        subscription_service = SubscriptionService(
+            repository=PlanLimitRepository(db_session),
+            ai_usage_repository=AIUsageRepository(db_session),
+        )
+
         return CoverLetterAIService(
             repository=repository,
             resume_repository=resume_repository,
             ai_service=fake_ai_service,
             ai_usage_service=ai_usage_service,
+            subscription_service=subscription_service,
         )
 
     app.dependency_overrides[get_cover_letter_ai_service] = (

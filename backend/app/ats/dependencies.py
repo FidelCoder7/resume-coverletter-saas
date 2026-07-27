@@ -11,6 +11,8 @@ from app.database.session import get_db
 from app.resume_versions.dependencies import get_resume_version_service
 from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.dependencies import get_subscription_service
+from app.subscriptions.service import SubscriptionService
 
 
 def get_ats_ai_service(
@@ -37,6 +39,9 @@ def get_ats_service(
     resume_version_service: ResumeVersionService = Depends(
         get_resume_version_service,
     ),
+    subscription_service: SubscriptionService = Depends(
+        get_subscription_service,
+    ),
 ) -> ATSService:
     """
     Dependency for ATS optimization workflows.
@@ -48,4 +53,5 @@ def get_ats_service(
         repository=repository,
         ai_service=ai_service,
         resume_version_service=resume_version_service,
+        subscription_service=subscription_service,
     )

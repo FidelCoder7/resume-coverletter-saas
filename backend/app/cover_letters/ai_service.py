@@ -5,9 +5,7 @@ from app.ai.formatters import ResumeFormatter
 from app.ai.schemas import CoverLetterGenerationRequest
 from app.ai.service import AIService
 from app.ai_usage.service import AIUsageService
-from app.common.constants import (
-    AIFeature,
-)
+from app.common.constants import AIFeature
 from app.cover_letters.exceptions import (
     CoverLetterAccessDenied,
     CoverLetterNotFound,
@@ -15,20 +13,28 @@ from app.cover_letters.exceptions import (
 from app.cover_letters.models import CoverLetter
 from app.cover_letters.repository import CoverLetterRepository
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.service import SubscriptionService
+from app.users.models import User
 
 
 class CoverLetterAIService:
+    """
+    Coordinates AI-powered cover letter generation and regeneration.
+    """
+
     def __init__(
         self,
         repository: CoverLetterRepository,
         resume_repository: ResumeRepository,
         ai_service: AIService,
         ai_usage_service: AIUsageService,
-    ):
+        subscription_service: SubscriptionService,
+    ) -> None:
         self.repository = repository
         self.resume_repository = resume_repository
         self.ai_service = ai_service
         self.ai_usage_service = ai_usage_service
+        self.subscription_service = subscription_service
 
     def _record_ai_usage(
         self,
@@ -51,11 +57,39 @@ class CoverLetterAIService:
             metadata=result.metadata,
         )
 
+    def _check_generation_limit(
+        self,
+        *,
+        user: User,
+    ) -> None:
+        """
+        Enforce the user's subscription limit for cover letter generation.
+        """
+
+        self.subscription_service.check_limit(
+            user=user,
+            feature=AIFeature.COVER_LETTER_GENERATION,
+        )
+
+    def _check_regeneration_limit(
+        self,
+        *,
+        user: User,
+    ) -> None:
+        """
+        Enforce the user's subscription limit for cover letter regeneration.
+        """
+
+        self.subscription_service.check_limit(
+            user=user,
+            feature=AIFeature.COVER_LETTER_REGENERATION,
+        )
+
     def _verify_resume_owner(
         self,
         *,
         resume_id: UUID,
-        user_id: UUID,
+        user: User,
     ):
         resume = self.resume_repository.get_for_generation(
             resume_id,
@@ -66,7 +100,7 @@ class CoverLetterAIService:
                 "Resume not found.",
             )
 
-        if resume.user_id != user_id:
+        if resume.user_id != user.id:
             raise CoverLetterAccessDenied(
                 "You do not have permission to access this resume.",
             )
@@ -76,7 +110,7 @@ class CoverLetterAIService:
     def get_cover_letter(
         self,
         *,
-        user_id: UUID,
+        user: User,
         cover_letter_id: UUID,
     ) -> CoverLetter:
         cover_letter = self.repository.get_by_id(
@@ -90,7 +124,7 @@ class CoverLetterAIService:
 
         self._verify_resume_owner(
             resume_id=cover_letter.resume_id,
-            user_id=user_id,
+            user=user,
         )
 
         return cover_letter
@@ -98,7 +132,7 @@ class CoverLetterAIService:
     def generate_cover_letter(
         self,
         *,
-        user_id: UUID,
+        user: User,
         resume_id: UUID,
         title: str,
         company_name: str,
@@ -107,7 +141,11 @@ class CoverLetterAIService:
     ) -> CoverLetter:
         resume = self._verify_resume_owner(
             resume_id=resume_id,
-            user_id=user_id,
+            user=user,
+        )
+
+        self._check_generation_limit(
+            user=user,
         )
 
         ai_request = CoverLetterGenerationRequest(
@@ -121,7 +159,7 @@ class CoverLetterAIService:
 
         ai_result = self.ai_service.generate_cover_letter(
             ai_request,
-            user_id=user_id,
+            user_id=user.id,
             resume_id=resume.id,
         )
 
@@ -138,7 +176,7 @@ class CoverLetterAIService:
         )
 
         self._record_ai_usage(
-            user_id=user_id,
+            user_id=user.id,
             resume_id=resume.id,
             cover_letter_id=cover_letter.id,
             feature=AIFeature.COVER_LETTER_GENERATION,
@@ -150,18 +188,22 @@ class CoverLetterAIService:
     def regenerate_cover_letter(
         self,
         *,
-        user_id: UUID,
+        user: User,
         cover_letter_id: UUID,
         job_description: str,
     ) -> CoverLetter:
         cover_letter = self.get_cover_letter(
-            user_id=user_id,
+            user=user,
             cover_letter_id=cover_letter_id,
         )
 
         resume = self._verify_resume_owner(
             resume_id=cover_letter.resume_id,
-            user_id=user_id,
+            user=user,
+        )
+
+        self._check_regeneration_limit(
+            user=user,
         )
 
         ai_request = CoverLetterGenerationRequest(
@@ -175,7 +217,7 @@ class CoverLetterAIService:
 
         ai_result = self.ai_service.generate_cover_letter(
             ai_request,
-            user_id=user_id,
+            user_id=user.id,
             resume_id=resume.id,
             cover_letter_id=cover_letter.id,
         )
@@ -187,7 +229,7 @@ class CoverLetterAIService:
         )
 
         self._record_ai_usage(
-            user_id=user_id,
+            user_id=user.id,
             resume_id=resume.id,
             cover_letter_id=cover_letter.id,
             feature=AIFeature.COVER_LETTER_REGENERATION,

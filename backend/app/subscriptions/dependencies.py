@@ -1,6 +1,7 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from app.ai_usage.repository import AIUsageRepository
 from app.database.session import get_db
 from app.subscriptions.repository import PlanLimitRepository
 from app.subscriptions.service import SubscriptionService
@@ -18,9 +19,24 @@ def get_plan_limit_repository(
     )
 
 
+def get_ai_usage_repository(
+    db: Session = Depends(get_db),
+) -> AIUsageRepository:
+    """
+    Return the AI usage repository.
+    """
+
+    return AIUsageRepository(
+        db=db,
+    )
+
+
 def get_subscription_service(
-    repository: PlanLimitRepository = Depends(
+    plan_limit_repository: PlanLimitRepository = Depends(
         get_plan_limit_repository,
+    ),
+    ai_usage_repository: AIUsageRepository = Depends(
+        get_ai_usage_repository,
     ),
 ) -> SubscriptionService:
     """
@@ -28,5 +44,6 @@ def get_subscription_service(
     """
 
     return SubscriptionService(
-        repository=repository,
+        repository=plan_limit_repository,
+        ai_usage_repository=ai_usage_repository,
     )

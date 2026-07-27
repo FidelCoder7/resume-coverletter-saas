@@ -1,175 +1,169 @@
 import pytest
 
+from app.ai.contracts import AIExecutionMetadata
+from app.ai_usage.repository import AIUsageRepository
+from app.ai_usage.service import AIUsageService
 from app.common.constants import (
     AIFeature,
     SubscriptionLimitPeriod,
     SubscriptionPlan,
 )
-from app.subscriptions.exceptions import PlanLimitNotFound
-from app.subscriptions.models import PlanLimit
+from app.subscriptions.exceptions import (
+    SubscriptionLimitExceeded,
+)
 from app.subscriptions.repository import PlanLimitRepository
 from app.subscriptions.service import SubscriptionService
+from tests.factories.user_factory import create_user
 
 
-def make_plan_limit(
-    *,
-    subscription_plan: SubscriptionPlan,
-    feature: AIFeature,
-    limit_value: int = 5,
-    period: SubscriptionLimitPeriod = SubscriptionLimitPeriod.MONTHLY,
-) -> PlanLimit:
-    return PlanLimit(
-        subscription_plan=subscription_plan,
-        feature=feature,
-        limit_value=limit_value,
-        period=period,
+def create_service(
+    db_session,
+) -> SubscriptionService:
+    return SubscriptionService(
+        repository=PlanLimitRepository(
+            db_session,
+        ),
+        ai_usage_repository=AIUsageRepository(
+            db_session,
+        ),
     )
 
 
 def test_get_plan_limit_returns_configured_limit(
     db_session,
 ):
-    repository = PlanLimitRepository(db_session)
-    service = SubscriptionService(repository)
 
-    plan_limit = make_plan_limit(
-        subscription_plan=SubscriptionPlan.FREE,
-        feature=AIFeature.RESUME_GENERATION,
-        limit_value=5,
+    service = create_service(
+        db_session,
     )
-
-    repository.create(plan_limit)
 
     result = service.get_plan_limit(
         subscription_plan=SubscriptionPlan.FREE,
         feature=AIFeature.RESUME_GENERATION,
     )
 
-    assert result.id == plan_limit.id
-    assert result.limit_value == 5
+    assert result.subscription_plan == SubscriptionPlan.FREE
+    assert result.feature == AIFeature.RESUME_GENERATION
+    assert result.limit_value == 3
     assert result.period == SubscriptionLimitPeriod.MONTHLY
 
 
-def test_get_plan_limit_uses_monthly_period_by_default(
+def test_check_limit_allows_request_when_usage_is_below_limit(
     db_session,
 ):
-    repository = PlanLimitRepository(db_session)
-    service = SubscriptionService(repository)
-
-    plan_limit = make_plan_limit(
-        subscription_plan=SubscriptionPlan.PRO,
-        feature=AIFeature.ATS_OPTIMIZATION,
-        period=SubscriptionLimitPeriod.MONTHLY,
-        limit_value=50,
+    user = create_user(
+        db_session,
+        subscription_plan=SubscriptionPlan.FREE,
+        verified=True,
     )
 
-    repository.create(plan_limit)
-
-    result = service.get_plan_limit(
-        subscription_plan=SubscriptionPlan.PRO,
-        feature=AIFeature.ATS_OPTIMIZATION,
+    service = create_service(
+        db_session,
     )
 
-    assert result.id == plan_limit.id
-    assert result.period == SubscriptionLimitPeriod.MONTHLY
+    result = service.check_limit(
+        user=user,
+        feature=AIFeature.RESUME_GENERATION,
+    )
+
+    assert result.limit_value == 3
+    assert result.usage == 0
+    assert result.remaining == 3
 
 
-def test_get_plan_limit_raises_when_limit_is_not_configured(
+def test_check_limit_raises_when_usage_reaches_limit(
     db_session,
 ):
-    repository = PlanLimitRepository(db_session)
-    service = SubscriptionService(repository)
+    user = create_user(
+        db_session,
+        subscription_plan=SubscriptionPlan.FREE,
+        verified=True,
+    )
+
+    usage_service = AIUsageService(
+        AIUsageRepository(db_session),
+    )
+
+    metadata = AIExecutionMetadata(
+        provider="fake",
+        model="fake",
+        prompt_version="v1",
+        prompt_tokens=1,
+        completion_tokens=1,
+        total_tokens=2,
+        latency_ms=1,
+        estimated_cost=0,
+    )
+
+    for _ in range(3):
+        usage_service.record_success(
+            user_id=user.id,
+            resume_id=None,
+            feature=AIFeature.RESUME_GENERATION,
+            metadata=metadata,
+        )
+
+    service = create_service(
+        db_session,
+    )
 
     with pytest.raises(
-        PlanLimitNotFound,
-        match="No subscription limit is configured",
-    ):
-        service.get_plan_limit(
-            subscription_plan=SubscriptionPlan.FREE,
+        SubscriptionLimitExceeded,
+    ) as exc_info:
+        service.check_limit(
+            user=user,
             feature=AIFeature.RESUME_GENERATION,
         )
 
+    exception = exc_info.value
 
-def test_get_plan_limit_error_contains_plan_feature_and_period(
+    assert exception.limit == 3
+    assert exception.usage == 3
+
+
+def test_check_limit_tracks_features_independently(
     db_session,
 ):
-    repository = PlanLimitRepository(db_session)
-    service = SubscriptionService(repository)
-
-    with pytest.raises(
-        PlanLimitNotFound,
-        match=(
-            r"plan=free, "
-            r"feature=resume_generation, "
-            r"period=monthly"
-        ),
-    ):
-        service.get_plan_limit(
-            subscription_plan=SubscriptionPlan.FREE,
-            feature=AIFeature.RESUME_GENERATION,
-        )
-
-
-def test_list_plan_limits_returns_all_limits_for_plan(
-    db_session,
-):
-    repository = PlanLimitRepository(db_session)
-    service = SubscriptionService(repository)
-
-    resume_limit = make_plan_limit(
+    user = create_user(
+        db_session,
         subscription_plan=SubscriptionPlan.FREE,
-        feature=AIFeature.RESUME_GENERATION,
-        limit_value=5,
+        verified=True,
     )
 
-    ats_limit = make_plan_limit(
-        subscription_plan=SubscriptionPlan.FREE,
+    service = create_service(
+        db_session,
+    )
+
+    resume_status = service.check_limit(
+        user=user,
+        feature=AIFeature.RESUME_GENERATION,
+    )
+
+    ats_status = service.check_limit(
+        user=user,
         feature=AIFeature.ATS_OPTIMIZATION,
-        limit_value=3,
     )
 
-    pro_limit = make_plan_limit(
-        subscription_plan=SubscriptionPlan.PRO,
-        feature=AIFeature.RESUME_GENERATION,
-        limit_value=50,
+    assert resume_status.usage == 0
+    assert resume_status.remaining == 3
+
+    assert ats_status.usage == 0
+    assert ats_status.remaining == 1
+
+
+def test_list_plan_limits_returns_only_requested_plan_limits(
+    db_session,
+):
+
+    service = create_service(
+        db_session,
     )
 
-    db_session.add_all(
-        [
-            resume_limit,
-            ats_limit,
-            pro_limit,
-        ],
-    )
-    db_session.commit()
-
-    results = service.list_plan_limits(
+    result = service.list_plan_limits(
         subscription_plan=SubscriptionPlan.FREE,
     )
 
-    assert len(results) == 2
-    assert all(
-        result.subscription_plan == SubscriptionPlan.FREE
-        for result in results
-    )
-
-    assert {
-        result.feature
-        for result in results
-    } == {
-        AIFeature.RESUME_GENERATION,
-        AIFeature.ATS_OPTIMIZATION,
-    }
-
-
-def test_list_plan_limits_returns_empty_list_when_no_limits_exist(
-    db_session,
-):
-    repository = PlanLimitRepository(db_session)
-    service = SubscriptionService(repository)
-
-    results = service.list_plan_limits(
-        subscription_plan=SubscriptionPlan.PRO,
-    )
-
-    assert results == []
+    assert result.subscription_plan == SubscriptionPlan.FREE
+    assert len(result.limits) == 4
+    assert result.limits[0].limit_value == 3
+    assert result.limits[0].subscription_plan == SubscriptionPlan.FREE

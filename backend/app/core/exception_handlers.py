@@ -61,6 +61,9 @@ from app.skills.exceptions import (
     SkillAccessDenied,
     SkillNotFound,
 )
+from app.subscriptions.exceptions import (
+    SubscriptionLimitExceeded,
+)
 
 logger = getLogger(__name__)
 
@@ -112,6 +115,8 @@ EXCEPTION_HANDLERS: tuple[tuple[type[Exception], int], ...] = (
     (CoverLetterNotFound, 404),
     (CoverLetterAccessDenied, 403),
     (DuplicateCoverLetter, 409),
+    # Subscription limits
+    (SubscriptionLimitExceeded, 429),
 )
 
 

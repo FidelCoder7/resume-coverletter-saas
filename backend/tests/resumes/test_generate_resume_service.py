@@ -15,6 +15,8 @@ from app.resumes.exceptions import (
     ResumeNotFound,
 )
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.repository import PlanLimitRepository
+from app.subscriptions.service import SubscriptionService
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
 from tests.fakes.fake_ai_provider import FakeAIProvider
@@ -36,11 +38,17 @@ def service(db_session):
         ResumeVersionRepository(db_session),
     )
 
+    subscription_service = SubscriptionService(
+        repository=PlanLimitRepository(db_session),
+        ai_usage_repository=AIUsageRepository(db_session),
+    )
+
     return ResumeAIService(
         repository=repository,
         ai_service=ai_service,
         ai_usage_service=ai_usage_service,
         resume_version_service=resume_version_service,
+        subscription_service=subscription_service,
     )
 
 
@@ -56,7 +64,7 @@ def test_generate_resume(service, db_session):
     )
 
     updated = service.generate_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         target_job_title="Backend Engineer",
         job_description="FastAPI backend role.",
@@ -78,7 +86,7 @@ def test_generate_resume_unknown_resume(
 
     with pytest.raises(ResumeNotFound):
         service.generate_resume(
-            user_id=user.id,
+            user=user,
             resume_id=uuid4(),
             target_job_title="Backend Engineer",
             job_description="FastAPI backend role.",
@@ -106,7 +114,7 @@ def test_generate_resume_forbidden(
 
     with pytest.raises(ResumeAccessDenied):
         service.generate_resume(
-            user_id=other_user.id,
+            user=other_user,
             resume_id=resume.id,
             target_job_title="Backend Engineer",
             job_description="FastAPI backend role.",
@@ -128,7 +136,7 @@ def test_generated_resume_is_persisted(
     )
 
     updated = service.generate_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         target_job_title="Backend Engineer",
         job_description="FastAPI backend role.",
@@ -160,7 +168,7 @@ def test_generated_resume_sets_timestamp(
     )
 
     updated = service.generate_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         target_job_title="Backend Engineer",
         job_description="FastAPI backend role.",
@@ -187,7 +195,7 @@ def test_generate_resume_records_ai_usage(
     )
 
     service.generate_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         target_job_title="Backend Engineer",
         job_description="FastAPI backend role.",
@@ -235,7 +243,7 @@ def test_regenerate_resume_overwrites_previous_content(
     )
 
     updated = service.generate_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         target_job_title="Senior Backend Engineer",
         job_description="Senior FastAPI role.",
@@ -259,7 +267,7 @@ def test_generate_resume_creates_ai_version(
     )
 
     updated = service.generate_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         target_job_title="Backend Engineer",
         job_description="FastAPI backend role.",
@@ -297,14 +305,14 @@ def test_regenerate_resume_creates_new_ai_version(
     )
 
     first = service.generate_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         target_job_title="Backend Engineer",
         job_description="FastAPI backend role.",
     )
 
     second = service.generate_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         target_job_title="Senior Backend Engineer",
         job_description="Senior FastAPI backend role.",

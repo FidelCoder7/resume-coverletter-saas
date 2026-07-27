@@ -16,6 +16,8 @@ from app.common.constants import (
 from app.resume_versions.repository import ResumeVersionRepository
 from app.resume_versions.service import ResumeVersionService
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.repository import PlanLimitRepository
+from app.subscriptions.service import SubscriptionService
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
 
@@ -63,10 +65,14 @@ def test_ats_optimization_creates_ai_usage_record(
             ),
         ),
         resume_version_service=resume_version_service,
+        subscription_service=SubscriptionService(
+            repository=PlanLimitRepository(db_session),
+            ai_usage_repository=AIUsageRepository(db_session),
+        ),
     )
 
     response = ats_service.optimize_resume(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         job_description="Python FastAPI Docker Kubernetes PostgreSQL",
         target_job_title="Backend Engineer",

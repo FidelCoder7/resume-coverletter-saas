@@ -14,6 +14,8 @@ from app.cover_letters.exceptions import (
 )
 from app.cover_letters.repository import CoverLetterRepository
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.repository import PlanLimitRepository
+from app.subscriptions.service import SubscriptionService
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
 from tests.fakes.fake_ai_provider import GENERATED_COVER_LETTER, FakeAIProvider
@@ -32,11 +34,17 @@ def service(db_session):
         provider=FakeAIProvider(),
     )
 
+    subscription_service = SubscriptionService(
+        repository=PlanLimitRepository(db_session),
+        ai_usage_repository=AIUsageRepository(db_session),
+    )
+
     return CoverLetterAIService(
         repository=repository,
         resume_repository=resume_repository,
         ai_service=ai_service,
         ai_usage_service=ai_usage_service,
+        subscription_service=subscription_service,
     )
 
 
@@ -52,7 +60,7 @@ def test_generate_cover_letter(service, db_session):
     )
 
     cover_letter = service.generate_cover_letter(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         title="Backend Engineer",
         company_name="OpenAI",
@@ -75,7 +83,7 @@ def test_generate_cover_letter_unknown_resume(service, db_session):
 
     with pytest.raises(CoverLetterNotFound):
         service.generate_cover_letter(
-            user_id=user.id,
+            user=user,
             resume_id=uuid4(),
             title="Backend Engineer",
             company_name="OpenAI",
@@ -102,7 +110,7 @@ def test_generate_cover_letter_forbidden(service, db_session):
 
     with pytest.raises(CoverLetterAccessDenied):
         service.generate_cover_letter(
-            user_id=other_user.id,
+            user=other_user,
             resume_id=resume.id,
             title="Backend Engineer",
             company_name="OpenAI",
@@ -123,7 +131,7 @@ def test_generate_cover_letter_duplicate_title(service, db_session):
     )
 
     service.generate_cover_letter(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         title="Backend Engineer",
         company_name="OpenAI",
@@ -133,7 +141,7 @@ def test_generate_cover_letter_duplicate_title(service, db_session):
 
     with pytest.raises(DuplicateCoverLetter):
         service.generate_cover_letter(
-            user_id=user.id,
+            user=user,
             resume_id=resume.id,
             title="Backend Engineer",
             company_name="OpenAI",
@@ -154,7 +162,7 @@ def test_generated_cover_letter_is_persisted(service, db_session):
     )
 
     generated = service.generate_cover_letter(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         title="Backend Engineer",
         company_name="OpenAI",
@@ -188,7 +196,7 @@ def test_generate_cover_letter_records_ai_usage(
     )
 
     cover_letter = service.generate_cover_letter(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         title="Backend Engineer",
         company_name="OpenAI",

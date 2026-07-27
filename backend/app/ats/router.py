@@ -28,7 +28,7 @@ def optimize_resume(
     service: ATSService = Depends(get_ats_service),
 ):
     return service.optimize_resume(
-        user_id=current_user.id,
+        user=current_user,
         resume_id=resume_id,
         job_description=payload.job_description,
         target_job_title=payload.target_job_title,

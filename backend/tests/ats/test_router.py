@@ -67,7 +67,7 @@ def test_optimize_resume_success():
     assert body["optimized_resume"] == "Optimized resume"
 
     service.optimize_resume.assert_called_once_with(
-        user_id=current_user.id,
+        user=current_user,
         resume_id=resume_id,
         job_description="Python FastAPI Docker",
         target_job_title="Backend Engineer",
@@ -101,7 +101,7 @@ def test_optimize_resume_without_target_job_title():
     assert response.status_code == 200
 
     service.optimize_resume.assert_called_once_with(
-        user_id=current_user.id,
+        user=current_user,
         resume_id=resume_id,
         job_description="Python FastAPI",
         target_job_title=None,

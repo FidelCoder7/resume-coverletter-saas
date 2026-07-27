@@ -63,4 +63,3 @@ resume_version_source_enum = Enum(
     values_callable=lambda enum_class: [member.value for member in enum_class],
     create_type=True,
 )
-

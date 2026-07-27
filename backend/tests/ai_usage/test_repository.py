@@ -228,7 +228,7 @@ def test_list_by_cover_letter_returns_matching_records(db_session):
     assert results[0].cover_letter_id == cover_letter.id
 
 
-def test_count_by_user_and_period(db_session):
+def test_count_by_user_and_feature_and_period(db_session):
     repository = AIUsageRepository(db_session)
 
     user = create_user(db_session)
@@ -239,23 +239,27 @@ def test_count_by_user_and_period(db_session):
     create_usage(
         db_session,
         user_id=user.id,
+        feature=AIFeature.RESUME_GENERATION,
         created_at=now - timedelta(days=2),
     )
 
     create_usage(
         db_session,
         user_id=user.id,
+        feature=AIFeature.RESUME_GENERATION,
         created_at=now - timedelta(hours=12),
     )
 
     create_usage(
         db_session,
         user_id=other_user.id,
+        feature=AIFeature.RESUME_GENERATION,
         created_at=now - timedelta(hours=6),
     )
 
-    count = repository.count_by_user_and_period(
+    count = repository.count_by_user_and_feature_and_period(
         user_id=user.id,
+        feature=AIFeature.RESUME_GENERATION,
         start_date=now - timedelta(days=1),
         end_date=now + timedelta(minutes=1),
     )
@@ -345,8 +349,9 @@ def test_analytics_return_zero_when_no_records_exist(db_session):
     now = datetime.now(UTC)
 
     assert (
-        repository.count_by_user_and_period(
+        repository.count_by_user_and_feature_and_period(
             user_id=user.id,
+            feature=AIFeature.RESUME_GENERATION,
             start_date=now - timedelta(days=1),
             end_date=now,
         )

@@ -14,6 +14,8 @@ from app.cover_letters.exceptions import (
 from app.cover_letters.repository import CoverLetterRepository
 from app.cover_letters.service import CoverLetterService
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.repository import PlanLimitRepository
+from app.subscriptions.service import SubscriptionService
 from tests.factories.resume_factory import create_resume
 from tests.factories.user_factory import create_user
 from tests.fakes.fake_ai_provider import GENERATED_COVER_LETTER, FakeAIProvider
@@ -41,6 +43,10 @@ def build_cover_letter_ai_service(
         ),
         ai_usage_service=AIUsageService(
             AIUsageRepository(db_session),
+        ),
+        subscription_service=SubscriptionService(
+            repository=PlanLimitRepository(db_session),
+            ai_usage_repository=AIUsageRepository(db_session),
         ),
     )
 
@@ -89,7 +95,7 @@ def test_regenerate_cover_letter_success(
     )
 
     regenerated = ai_service.regenerate_cover_letter(
-        user_id=user.id,
+        user=user,
         cover_letter_id=cover_letter.id,
         job_description="Looking for an experienced FastAPI backend engineer.",
     )
@@ -126,7 +132,7 @@ def test_regenerate_preserves_metadata(
     )
 
     regenerated = ai_service.regenerate_cover_letter(
-        user_id=user.id,
+        user=user,
         cover_letter_id=cover_letter.id,
         job_description="Looking for an experienced FastAPI backend engineer.",
     )
@@ -152,7 +158,7 @@ def test_regenerate_unknown_cover_letter(
 
     with pytest.raises(CoverLetterNotFound):
         ai_service.regenerate_cover_letter(
-            user_id=user.id,
+            user=user,
             cover_letter_id=uuid4(),
             job_description="Updated job description",
         )
@@ -192,7 +198,7 @@ def test_regenerate_other_users_cover_letter(
 
     with pytest.raises(CoverLetterAccessDenied):
         ai_service.regenerate_cover_letter(
-            user_id=attacker.id,
+            user=attacker,
             cover_letter_id=cover_letter.id,
             job_description="Updated job description",
         )
@@ -228,7 +234,7 @@ def test_regenerate_overwrites_existing_content(
     original = cover_letter.content
 
     regenerated = ai_service.regenerate_cover_letter(
-        user_id=user.id,
+        user=user,
         cover_letter_id=cover_letter.id,
         job_description="Looking for an experienced FastAPI backend engineer.",
     )
@@ -265,7 +271,7 @@ def test_regenerate_updates_database(
     )
 
     ai_service.regenerate_cover_letter(
-        user_id=user.id,
+        user=user,
         cover_letter_id=cover_letter.id,
         job_description="Looking for an experienced FastAPI backend engineer.",
     )
@@ -296,7 +302,7 @@ def test_regenerate_cover_letter_records_ai_usage(
     )
 
     cover_letter = ai_service.generate_cover_letter(
-        user_id=user.id,
+        user=user,
         resume_id=resume.id,
         title="Backend Engineer",
         company_name="OpenAI",
@@ -305,7 +311,7 @@ def test_regenerate_cover_letter_records_ai_usage(
     )
 
     ai_service.regenerate_cover_letter(
-        user_id=user.id,
+        user=user,
         cover_letter_id=cover_letter.id,
         job_description="Updated job description.",
     )

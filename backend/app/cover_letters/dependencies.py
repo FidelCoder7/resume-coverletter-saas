@@ -10,6 +10,8 @@ from app.cover_letters.repository import CoverLetterRepository
 from app.cover_letters.service import CoverLetterService
 from app.database.session import get_db
 from app.resumes.repository import ResumeRepository
+from app.subscriptions.dependencies import get_subscription_service
+from app.subscriptions.service import SubscriptionService
 
 
 def get_cover_letter_service(
@@ -27,6 +29,9 @@ def get_cover_letter_service(
 def get_cover_letter_ai_service(
     db: Session = Depends(get_db),
     ai_service: AIService = Depends(get_ai_service),
+    subscription_service: SubscriptionService = Depends(
+        get_subscription_service,
+    ),
 ) -> CoverLetterAIService:
     cover_letter_repository = CoverLetterRepository(db)
     resume_repository = ResumeRepository(db)
@@ -40,4 +45,5 @@ def get_cover_letter_ai_service(
         resume_repository=resume_repository,
         ai_service=ai_service,
         ai_usage_service=ai_usage_service,
+        subscription_service=subscription_service,
     )
