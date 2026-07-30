@@ -4,9 +4,8 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 
 ## Current Status
 
-**Current Version:** **v1.9.0**  
-**Status:** Billing & Payment Integration completed and frozen
-
+**Current Version:** **v2.0.0**
+**Status:** Resume Export (PDF/DOCX) completed and frozen
 
 ## Features
 
@@ -42,6 +41,8 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Immutable historical versions
 * Restore operations create new version history entries
 * Full nested resume content restoration
+* Resume export (PDF)
+* Resume export (DOCX)
 
 
 ### Resume Versioning & History
@@ -61,6 +62,20 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Automatic `RESTORE` version creation
 * Internal service-layer version creation
 * No public manual version creation endpoint
+
+### Resume Export
+
+* PDF resume export
+* DOCX resume export
+* Renderer abstraction
+* Format-specific renderer implementations
+* HTML-based PDF rendering
+* Native DOCX generation
+* Export service orchestration
+* Export-specific resume loading
+* Download-ready API endpoints
+* Ownership validation
+* Integration-tested export endpoints
 
 
 ### Cover Letter Management
@@ -155,7 +170,8 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Provider-agnostic payment architecture
 * Subscription-aware AI workflows
 * Payment provider abstraction
-
+* Renderer abstraction architecture
+* Format-specific export renderers
 
 ### Quality & Testing
 
@@ -176,7 +192,10 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Payment synchronization tests
 * Router authorization tests
 * Transaction lifecycle tests
-
+* PDF renderer tests
+* DOCX renderer tests
+* Resume export service tests
+* Resume export endpoint tests
 
 
 ## Technology Stack
@@ -189,6 +208,8 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Alembic
 * Pydantic v2
 * JWT Authentication
+* WeasyPrint
+* python-docx
 
 ### AI
 
@@ -250,7 +271,7 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 | v1.7.0  | Resume Versioning & History                    | ✅      |
 | v1.8.0  | Subscription & Usage Limits                    | ✅      |
 | v1.9.0 | Billing & Payment Integration                   | ✅      |
-
+| v2.0.0 | Resume Export (PDF/DOCX)                        | ✅      |
 
 ## Testing
 
@@ -272,6 +293,10 @@ The project includes:
 * Subscription tests
 * Plan limit tests
 * Usage enforcement tests
+* PDF renderer tests
+* DOCX renderer tests
+* Resume export service tests
+* Resume export endpoint tests
 
 The project is maintained with a focus on:
 
@@ -294,7 +319,6 @@ The project is maintained with a focus on:
 * Subscription activation and renewal
 * Automatic subscription expiry
 * Payment retry support
-* Resume Export (PDF/DOCX)
 * Public Resume Sharing
 * Recruiter Portal
 * Admin Dashboard
@@ -321,7 +345,8 @@ The following major capabilities have been completed:
 * Resume Versioning & History
 * Subscription & Usage Limits
 * Billing & Payment Integration
+* Resume Export (PDF/DOCX)
 
 
-**Current milestone:** `v1.9.0`  
+**Current milestone:** `v2.0.0`
 **Release status:** Complete and frozen

@@ -60,6 +60,10 @@ from app.projects.exceptions import (
     ProjectAccessDenied,
     ProjectNotFound,
 )
+from app.resume_exports.exceptions import (
+    ResumeExportNotFound,
+    UnsupportedResumeExportFormat,
+)
 from app.resume_versions.exceptions import (
     DuplicateResumeVersion,
     ResumeVersionNotFound,
@@ -104,6 +108,9 @@ EXCEPTION_HANDLERS: tuple[tuple[type[Exception], int], ...] = (
     # Resume version management
     (ResumeVersionNotFound, 404),
     (DuplicateResumeVersion, 409),
+    # Resume exports
+    (ResumeExportNotFound, 404),
+    (UnsupportedResumeExportFormat, 400),
     # Experience management
     (ExperienceNotFound, 404),
     (ExperienceAccessDenied, 403),
