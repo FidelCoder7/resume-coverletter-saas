@@ -4,9 +4,8 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 
 ## Current Status
 
-**Current Version:** **v1.8.0**  
-**Status:** Subscription & Usage Limits completed and frozen
-
+**Current Version:** **v1.9.0**  
+**Status:** Billing & Payment Integration completed and frozen
 
 
 ## Features
@@ -122,6 +121,27 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Deterministic subscription and usage limit tests
 
 
+### Billing & Payment Integration
+
+* Provider-agnostic payment architecture
+* Payment provider abstraction
+* PesaPal provider integration
+* Payment transaction lifecycle
+* Payment initiation API
+* Payment callback (IPN) processing
+* Payment status synchronization
+* Payment transaction history
+* Transaction ownership enforcement
+* Server-side subscription pricing
+* Provider transaction tracking
+* Merchant order reference generation
+* Payment status normalization
+* Provider callback normalization
+* Payment provider dependency injection
+* Repository-backed transaction persistence
+* Provider-agnostic payment schemas
+* Comprehensive provider test suite
+
 ### Platform Architecture
 
 * Repository pattern
@@ -132,7 +152,9 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Alembic migrations
 * Modular API architecture
 * Provider-agnostic AI architecture
+* Provider-agnostic payment architecture
 * Subscription-aware AI workflows
+* Payment provider abstraction
 
 
 ### Quality & Testing
@@ -148,6 +170,12 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Subscription service tests
 * Subscription API tests
 * AI usage tracking tests
+* Billing service tests
+* Payment provider tests
+* Payment callback tests
+* Payment synchronization tests
+* Router authorization tests
+* Transaction lifecycle tests
 
 
 
@@ -182,8 +210,12 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Subscription plan architecture
 * Usage-based feature limits
 * Monthly quota enforcement
-* Stripe integration (planned)
-* Pesapal integration (planned)
+* Provider-agnostic payment architecture
+* PesaPal integration
+* Payment transaction management
+* Payment callback processing
+* Payment status synchronization
+* Stripe integration (future provider)
 
 ### DevOps
 
@@ -217,7 +249,7 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 | v1.6.0  | ATS Resume Optimization Engine                 | ✅      |
 | v1.7.0  | Resume Versioning & History                    | ✅      |
 | v1.8.0  | Subscription & Usage Limits                    | ✅      |
-
+| v1.9.0 | Billing & Payment Integration                   | ✅      |
 
 
 ## Testing
@@ -258,11 +290,10 @@ The project is maintained with a focus on:
 
 ### Upcoming
 
-* Billing & Payment Integration
-* Pesapal payment integration
 * Subscription lifecycle management
 * Subscription activation and renewal
-* Payment transaction tracking
+* Automatic subscription expiry
+* Payment retry support
 * Resume Export (PDF/DOCX)
 * Public Resume Sharing
 * Recruiter Portal
@@ -289,6 +320,8 @@ The following major capabilities have been completed:
 * ATS Resume Optimization
 * Resume Versioning & History
 * Subscription & Usage Limits
+* Billing & Payment Integration
 
-**Current milestone:** `v1.8.0`  
+
+**Current milestone:** `v1.9.0`  
 **Release status:** Complete and frozen

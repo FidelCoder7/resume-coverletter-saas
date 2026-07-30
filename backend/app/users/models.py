@@ -18,6 +18,7 @@ from app.database.enums import (
 
 if TYPE_CHECKING:
     from app.ai_usage.models import AIUsage
+    from app.billing.models import PaymentTransaction
     from app.email_verification.models import EmailVerificationToken
     from app.refresh_tokens.models import RefreshToken
     from app.resumes.models import Resume
@@ -82,6 +83,16 @@ class User(Base):
         subscription_plan_enum,
         default=SubscriptionPlan.FREE,
         nullable=False,
+    )
+
+    # ------------------------------------------------------------------
+    # Billing
+    # ------------------------------------------------------------------
+
+    payment_transactions: Mapped[list["PaymentTransaction"]] = relationship(
+        "PaymentTransaction",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     # ------------------------------------------------------------------

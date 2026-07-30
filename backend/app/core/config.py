@@ -104,6 +104,39 @@ class Settings(BaseSettings):
 
     AI_ATS_OPTIMIZATION_PROMPT_VERSION: str = "ats_optimization_v1"
 
+    #
+    # PesaPal Configuration
+    #
+
+    PESAPAL_CONSUMER_KEY: str
+
+    PESAPAL_CONSUMER_SECRET: str
+
+    PESAPAL_BASE_URL: str = "https://cybqa.pesapal.com/pesapalv3"
+
+    PESAPAL_OAUTH_URL: str = "https://cybqa.pesapal.com/pesapalv3/api/Auth/RequestToken"
+
+    PESAPAL_ORDER_SUBMISSION_URL: str = (
+        "https://cybqa.pesapal.com/pesapalv3/api/Transactions/SubmitOrderRequest"
+    )
+
+    PESAPAL_ORDER_STATUS_URL: str = (
+        "https://cybqa.pesapal.com/pesapalv3/api/Transactions/GetTransactionStatus"
+    )
+
+    PESAPAL_IPN_URL: str
+
+    PESAPAL_CALLBACK_URL: str
+
+    PESAPAL_TIMEOUT: int = Field(
+        default=30,
+        gt=0,
+    )
+
+    PESAPAL_DEFAULT_CURRENCY: str = "KES"
+
+    PESAPAL_IPN_NOTIFICATION_TYPE: str = "GET"
+
     model_config = SettingsConfigDict(
         env_file=os.getenv(
             "ENV_FILE",

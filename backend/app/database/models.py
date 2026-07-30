@@ -6,6 +6,7 @@ all SQLAlchemy metadata.
 """
 
 from app.ai_usage.models import AIUsage
+from app.billing.models import PaymentTransaction
 from app.certifications.models import Certification
 from app.cover_letters.models import CoverLetter
 from app.database.base import Base
@@ -34,6 +35,7 @@ __all__ = (
     "RefreshToken",
     "EmailVerificationToken",
     "PasswordResetToken",
+    "PaymentTransaction",
     "Skill",
     "Project",
     "PlanLimit",

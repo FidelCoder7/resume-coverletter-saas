@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.router import router as v1_router
 from app.ats.router import router as ats_router
+from app.billing.router import router as billing_router
 from app.certifications.router import router as certifications_router
 from app.cover_letters.router import router as cover_letters_router
 from app.educations.router import router as education_router
@@ -26,6 +27,10 @@ api_router.include_router(
 
 api_router.include_router(
     subscriptions_router,
+)
+
+api_router.include_router(
+    billing_router,
 )
 
 api_router.include_router(

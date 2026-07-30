@@ -24,6 +24,32 @@ class SubscriptionPlan(StrEnum):
     PRO = "pro"
 
 
+class PaymentProvider(StrEnum):
+    PESAPAL = "pesapal"
+
+
+class PaymentStatus(StrEnum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
+class PaymentMethod(StrEnum):
+    MPESA = "mpesa"
+    CARD = "card"
+    BANK = "bank"
+    OTHER = "other"
+
+
+class BillingTransactionType(StrEnum):
+    SUBSCRIPTION_PURCHASE = "subscription_purchase"
+    SUBSCRIPTION_RENEWAL = "subscription_renewal"
+    SUBSCRIPTION_UPGRADE = "subscription_upgrade"
+    SUBSCRIPTION_DOWNGRADE = "subscription_downgrade"
+
+
 class SubscriptionLimitPeriod(StrEnum):
     MONTHLY = "monthly"
 

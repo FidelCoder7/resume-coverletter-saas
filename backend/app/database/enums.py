@@ -4,7 +4,11 @@ from app.common.constants import (
     AccountStatus,
     AIFeature,
     AIRequestStatus,
+    BillingTransactionType,
     EmploymentType,
+    PaymentMethod,
+    PaymentProvider,
+    PaymentStatus,
     ResumeVersionSource,
     SkillLevel,
     SubscriptionLimitPeriod,
@@ -30,6 +34,34 @@ subscription_plan_enum = Enum(
 subscription_limit_period_enum = Enum(
     SubscriptionLimitPeriod,
     name="subscription_limit_period",
+    values_callable=lambda enum_class: [member.value for member in enum_class],
+    create_type=True,
+)
+
+payment_provider_enum = Enum(
+    PaymentProvider,
+    name="payment_provider",
+    values_callable=lambda enum_class: [member.value for member in enum_class],
+    create_type=True,
+)
+
+payment_status_enum = Enum(
+    PaymentStatus,
+    name="payment_status",
+    values_callable=lambda enum_class: [member.value for member in enum_class],
+    create_type=True,
+)
+
+payment_method_enum = Enum(
+    PaymentMethod,
+    name="payment_method",
+    values_callable=lambda enum_class: [member.value for member in enum_class],
+    create_type=True,
+)
+
+billing_transaction_type_enum = Enum(
+    BillingTransactionType,
+    name="billing_transaction_type",
     values_callable=lambda enum_class: [member.value for member in enum_class],
     create_type=True,
 )

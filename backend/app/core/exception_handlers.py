@@ -11,6 +11,17 @@ from app.auth.exceptions import (
     InvalidToken,
     OAuthAccountConflict,
 )
+from app.billing.exceptions import (
+    InvalidPaymentCallback,
+    InvalidPaymentTransactionState,
+    InvalidSubscriptionPaymentPlan,
+    PaymentTransactionAlreadyCompleted,
+    PaymentTransactionNotFound,
+    UnsupportedPaymentCallback,
+)
+from app.billing.providers.exceptions import (
+    PaymentProviderError,
+)
 from app.certifications.exceptions import (
     CertificationAccessDenied,
     CertificationNotFound,
@@ -117,6 +128,15 @@ EXCEPTION_HANDLERS: tuple[tuple[type[Exception], int], ...] = (
     (DuplicateCoverLetter, 409),
     # Subscription limits
     (SubscriptionLimitExceeded, 429),
+    # Billing
+    (PaymentTransactionNotFound, 404),
+    (InvalidPaymentTransactionState, 409),
+    (PaymentTransactionAlreadyCompleted, 409),
+    (InvalidSubscriptionPaymentPlan, 400),
+    (InvalidPaymentCallback, 400),
+    (UnsupportedPaymentCallback, 400),
+    # Payment provider integration
+    (PaymentProviderError, 502),
 )
 
 
@@ -148,6 +168,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     """
     Register global exception handlers.
     """
+
     for exc_type, status_code in EXCEPTION_HANDLERS:
         _add_handler(
             app,
