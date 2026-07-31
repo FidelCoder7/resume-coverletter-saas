@@ -185,8 +185,7 @@ def render_experiences(
             </p>
             """
 
-        entries.append(
-            f"""
+        entries.append(f"""
             <article class="entry">
                 <h3>
                     {escape(experience.job_title)}
@@ -203,8 +202,7 @@ def render_experiences(
 
                 {description}
             </article>
-            """
-        )
+            """)
 
     return f"""
 <section class="section">
@@ -237,12 +235,9 @@ def render_education(
         field_of_study = ""
 
         if education.field_of_study:
-            field_of_study = (
-                f" | {escape(education.field_of_study)}"
-            )
+            field_of_study = f" | {escape(education.field_of_study)}"
 
-        entries.append(
-            f"""
+        entries.append(f"""
             <article class="entry">
                 <h3>
                     {escape(education.degree)}
@@ -263,8 +258,7 @@ def render_education(
                     else ""
                 }
             </article>
-            """
-        )
+            """)
 
     return f"""
 <section class="section">
@@ -283,13 +277,11 @@ def render_skills(
     skills = []
 
     for skill in resume.skills:
-        skills.append(
-            f"""
+        skills.append(f"""
             <span class="skill">
                 {escape(skill.name)}
             </span>
-            """
-        )
+            """)
 
     return f"""
 <section class="section">
@@ -330,8 +322,7 @@ def render_projects(
             </p>
             """
 
-        entries.append(
-            f"""
+        entries.append(f"""
             <article class="entry">
                 <h3>{escape(project.name)}</h3>
 
@@ -348,8 +339,7 @@ def render_projects(
                     else ""
                 }
             </article>
-            """
-        )
+            """)
 
     return f"""
 <section class="section">
@@ -370,8 +360,7 @@ def render_certifications(
     for certification in resume.certifications:
         issue_date = certification.issue_date.strftime("%b %Y")
 
-        entries.append(
-            f"""
+        entries.append(f"""
             <article class="entry">
                 <h3>{escape(certification.name)}</h3>
 
@@ -387,8 +376,7 @@ def render_certifications(
                     else ""
                 }
             </article>
-            """
-        )
+            """)
 
     return f"""
 <section class="section">

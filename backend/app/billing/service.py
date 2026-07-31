@@ -18,9 +18,7 @@ from app.common.constants import (
     PaymentStatus,
     SubscriptionPlan,
 )
-from app.common.constants import (
-    PaymentProvider as PaymentProviderType,
-)
+from app.common.constants import PaymentProvider as PaymentProviderType
 from app.core.config import settings
 
 
@@ -178,8 +176,6 @@ class PaymentTransactionService:
         transaction = self.get_transaction(
             transaction_id,
         )
-
-        
 
         if transaction.provider_transaction_id is None:
             raise InvalidPaymentCallback(

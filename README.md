@@ -1,11 +1,11 @@
 # resume-coverletter-saas
 
-Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, PostgreSQL, Stripe, Docker, and modern DevOps practices.
+Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, PostgreSQL, PesaPal, Docker, and modern DevOps practices.
 
 ## Current Status
 
-**Current Version:** **v2.0.0**
-**Status:** Resume Export (PDF/DOCX) completed and frozen
+**Current Version:** **v2.1.0**
+**Status:** Admin Dashboard completed and frozen
 
 ## Features
 
@@ -23,7 +23,6 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Subscription plan support
 * Rate limiting
 * Security headers
-
 
 ### Resume Management
 
@@ -43,7 +42,6 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Full nested resume content restoration
 * Resume export (PDF)
 * Resume export (DOCX)
-
 
 ### Resume Versioning & History
 
@@ -77,13 +75,11 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Ownership validation
 * Integration-tested export endpoints
 
-
 ### Cover Letter Management
 
 * Cover letter CRUD
 * AI-powered cover letter generation
 * AI cover letter regeneration
-
 
 ### AI Resume Features
 
@@ -98,7 +94,6 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Structured AI logging and monitoring
 * ATS resume optimization
 
-
 ### ATS Resume Optimization
 
 * AI-powered resume optimization
@@ -109,7 +104,6 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Matched keyword reporting
 * Optimization recommendations framework
 * AI usage tracking for ATS optimization
-
 
 ### Subscription & Usage Limits
 
@@ -135,7 +129,6 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Database-seeded default plan limits
 * Deterministic subscription and usage limit tests
 
-
 ### Billing & Payment Integration
 
 * Provider-agnostic payment architecture
@@ -157,10 +150,43 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Provider-agnostic payment schemas
 * Comprehensive provider test suite
 
+### Admin Dashboard
+
+* Administrator role-based access control
+* Protected administrative API routes
+* Administrative user management
+* Paginated user listing
+* User search and filtering
+* User inspection and detail views
+* User suspension
+* User reactivation
+* Administrative audit logging
+* Audit log listing and filtering
+* User-specific audit history
+* Admin-specific audit history
+* Aggregated administrative dashboard metrics
+* Total user metrics
+* Active, suspended, and deleted user metrics
+* Verified and unverified user metrics
+* Administrator count metrics
+* Subscription plan distribution metrics
+* Free and Pro subscription metrics
+* Total administrative audit log metrics
+* Historical registration metrics
+* Historical administrative activity metrics
+* Configurable dashboard time-series ranges
+* Dedicated `AdminDashboardService`
+* Repository-backed dashboard aggregation
+* Dependency-injected administrative services
+* Admin dashboard API endpoints
+* Dashboard metrics integration tests
+* Admin authorization tests
+
 ### Platform Architecture
 
 * Repository pattern
 * Service layer architecture
+* Dedicated dashboard service architecture
 * Dependency Injection
 * SQLAlchemy 2.x
 * Pydantic v2
@@ -172,6 +198,7 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * Payment provider abstraction
 * Renderer abstraction architecture
 * Format-specific export renderers
+* Role-based administrative access control
 
 ### Quality & Testing
 
@@ -196,7 +223,11 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * DOCX renderer tests
 * Resume export service tests
 * Resume export endpoint tests
-
+* Admin authorization tests
+* Admin user management tests
+* Admin audit log tests
+* Admin dashboard metrics tests
+* Dashboard time-series tests
 
 ## Technology Stack
 
@@ -245,8 +276,6 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 * GitHub Actions (planned)
 * Production deployment (planned)
 
-
-
 ## Version History
 
 | Version | Milestone                                      | Status |
@@ -270,8 +299,9 @@ Production-ready AI Resume & Cover Letter SaaS built with FastAPI, React, Postgr
 | v1.6.0  | ATS Resume Optimization Engine                 | ✅      |
 | v1.7.0  | Resume Versioning & History                    | ✅      |
 | v1.8.0  | Subscription & Usage Limits                    | ✅      |
-| v1.9.0 | Billing & Payment Integration                   | ✅      |
-| v2.0.0 | Resume Export (PDF/DOCX)                        | ✅      |
+| v1.9.0  | Billing & Payment Integration                  | ✅      |
+| v2.0.0  | Resume Export (PDF/DOCX)                       | ✅      |
+| v2.1.0  | Admin Dashboard                                | ✅      |
 
 ## Testing
 
@@ -293,10 +323,19 @@ The project includes:
 * Subscription tests
 * Plan limit tests
 * Usage enforcement tests
+* Billing tests
+* Payment provider tests
+* Payment callback tests
+* Payment synchronization tests
 * PDF renderer tests
 * DOCX renderer tests
 * Resume export service tests
 * Resume export endpoint tests
+* Admin authorization tests
+* Admin user management tests
+* Admin audit log tests
+* Admin dashboard metrics tests
+* Dashboard time-series tests
 
 The project is maintained with a focus on:
 
@@ -307,9 +346,9 @@ The project is maintained with a focus on:
 * AI provider isolation through fake providers
 * Subscription limit enforcement
 * Feature-specific usage tracking
+* Administrative access control
+* Comprehensive auditability
 * Test database isolation
-
-
 
 ## Roadmap
 
@@ -321,12 +360,10 @@ The project is maintained with a focus on:
 * Payment retry support
 * Public Resume Sharing
 * Recruiter Portal
-* Admin Dashboard
+* Admin Dashboard Frontend
 * Docker Production Deployment
 * CI/CD Pipeline
 * Kubernetes Deployment
-
-
 
 ## Completed Milestones
 
@@ -346,7 +383,7 @@ The following major capabilities have been completed:
 * Subscription & Usage Limits
 * Billing & Payment Integration
 * Resume Export (PDF/DOCX)
+* Admin Dashboard API
 
-
-**Current milestone:** `v2.0.0`
+**Current milestone:** `v2.1.0`
 **Release status:** Complete and frozen

@@ -18,6 +18,7 @@ from app.ai.dependencies import get_ai_service
 from app.ai.service import AIService
 from app.ai_usage.repository import AIUsageRepository
 from app.ai_usage.service import AIUsageService
+from app.common.constants import UserRole
 from app.core.config import settings
 from app.core.rate_limit import limiter
 from app.cover_letters.ai_service import CoverLetterAIService
@@ -231,6 +232,48 @@ def client(
 
     limiter.enabled = True
     app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def admin_client(
+    client: TestClient,
+    db_session: Session,
+):
+    """
+    TestClient authenticated as a newly created administrator.
+
+    Returns:
+        A tuple containing:
+        - authenticated TestClient
+        - authenticated admin User
+    """
+
+    admin = create_user(
+        db_session,
+        password=DEFAULT_PASSWORD,
+        verified=True,
+        role=UserRole.ADMIN,
+    )
+
+    response = client.post(
+        "/auth/login",
+        data={
+            "username": admin.email,
+            "password": DEFAULT_PASSWORD,
+        },
+    )
+
+    assert response.status_code == 200
+
+    access_token = response.json()["access_token"]
+
+    client.headers.update(
+        {
+            "Authorization": f"Bearer {access_token}",
+        }
+    )
+
+    return client, admin
 
 
 @pytest.fixture()

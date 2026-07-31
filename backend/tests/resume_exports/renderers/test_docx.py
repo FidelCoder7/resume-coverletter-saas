@@ -11,11 +11,10 @@ from tests.factories.resume_factory import make_resume
 @pytest.fixture
 def resume():
     resume = make_resume(
-    user_id="00000000-0000-0000-0000-000000000001",
-    title="Backend Resume",
-    summary="Python Backend Developer",
+        user_id="00000000-0000-0000-0000-000000000001",
+        title="Backend Resume",
+        summary="Python Backend Developer",
     )
-
 
     resume.experiences = []
     resume.educations = []
@@ -29,10 +28,8 @@ def resume():
 def test_docx_renderer_metadata():
     renderer = DocxResumeRenderer()
 
-
     assert (
-        renderer.media_type
-        == "application/"
+        renderer.media_type == "application/"
         "vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
     assert renderer.file_extension == "docx"
@@ -42,7 +39,6 @@ def test_docx_renderer_produces_valid_docx(
     resume,
 ):
     renderer = DocxResumeRenderer()
-
 
     result = renderer.render(
         resume,
@@ -64,7 +60,6 @@ def test_docx_renderer_contains_resume_content(
 ):
     renderer = DocxResumeRenderer()
 
-
     result = renderer.render(
         resume,
     )
@@ -73,10 +68,7 @@ def test_docx_renderer_contains_resume_content(
         BytesIO(result.content),
     )
 
-    document_text = "\n".join(
-        paragraph.text
-        for paragraph in document.paragraphs
-    )
+    document_text = "\n".join(paragraph.text for paragraph in document.paragraphs)
 
     assert resume.title in document_text
 
@@ -105,7 +97,6 @@ def test_docx_renderer_output_is_zip_archive(
 ):
     renderer = DocxResumeRenderer()
 
-
     result = renderer.render(
         resume,
     )
@@ -123,7 +114,6 @@ def test_docx_renderer_uses_fallback_filename_for_empty_title(
     resume,
 ):
     resume.title = ""
-
 
     renderer = DocxResumeRenderer()
 

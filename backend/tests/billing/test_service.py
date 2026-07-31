@@ -1003,10 +1003,10 @@ def test_process_payment_callback_completes_transaction(
     )
 
     initiate_transaction(
-            service,
-            user_id=user.id,
-            provider_order_id="ORDER-001",
-        )
+        service,
+        user_id=user.id,
+        provider_order_id="ORDER-001",
+    )
 
     provider.provider_type = PaymentProvider.PESAPAL
 
@@ -1075,10 +1075,10 @@ def test_process_payment_callback_without_tracking_id_does_not_sync(
     )
 
     initiate_transaction(
-            service,
-            user_id=user.id,
-            provider_order_id="ORDER-001",
-        )
+        service,
+        user_id=user.id,
+        provider_order_id="ORDER-001",
+    )
 
     provider.provider_type = PaymentProvider.PESAPAL
 
@@ -1112,10 +1112,10 @@ def test_process_payment_callback_persists_tracking_id(
     )
 
     initiate_transaction(
-            service,
-            user_id=user.id,
-            provider_order_id="ORDER-001",
-        )
+        service,
+        user_id=user.id,
+        provider_order_id="ORDER-001",
+    )
 
     provider.provider_type = PaymentProvider.PESAPAL
 

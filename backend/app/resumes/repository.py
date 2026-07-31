@@ -80,35 +80,34 @@ class ResumeRepository:
 
         return self.db.scalar(statement)
 
-
     def get_for_export(
-            self,
-            resume_id: UUID,
-        ) -> Resume | None:
-            """
-            Return a resume with all persisted resume content eagerly loaded.
-    
-            This is the dedicated loading boundary for export workflows.
-            The returned resume contains all child collections required to
-            render a complete export without relying on lazy loading after
-            the database session boundary.
-            """
-    
-            statement = (
-                select(Resume)
-                .options(
-                    selectinload(Resume.experiences),
-                    selectinload(Resume.educations),
-                    selectinload(Resume.skills),
-                    selectinload(Resume.projects),
-                    selectinload(Resume.certifications),
-                )
-                .where(
-                    Resume.id == resume_id,
-                )
+        self,
+        resume_id: UUID,
+    ) -> Resume | None:
+        """
+        Return a resume with all persisted resume content eagerly loaded.
+
+        This is the dedicated loading boundary for export workflows.
+        The returned resume contains all child collections required to
+        render a complete export without relying on lazy loading after
+        the database session boundary.
+        """
+
+        statement = (
+            select(Resume)
+            .options(
+                selectinload(Resume.experiences),
+                selectinload(Resume.educations),
+                selectinload(Resume.skills),
+                selectinload(Resume.projects),
+                selectinload(Resume.certifications),
             )
-    
-            return self.db.scalar(statement)
+            .where(
+                Resume.id == resume_id,
+            )
+        )
+
+        return self.db.scalar(statement)
 
     def get_for_restore(
         self,
@@ -136,9 +135,6 @@ class ResumeRepository:
         )
 
         return self.db.scalar(statement)
-
-
-    
 
     def list_by_user(
         self,

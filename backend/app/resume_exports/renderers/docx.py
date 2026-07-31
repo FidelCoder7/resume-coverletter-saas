@@ -20,8 +20,7 @@ class DocxResumeRenderer(ResumeExportRenderer):
     @property
     def media_type(self) -> str:
         return (
-            "application/"
-            "vnd.openxmlformats-officedocument.wordprocessingml.document"
+            "application/" "vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
     @property
@@ -116,9 +115,7 @@ class DocxResumeRenderer(ResumeExportRenderer):
         paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
         run = paragraph.add_run(
-            resume.title.strip()
-            if resume.title and resume.title.strip()
-            else "Resume",
+            resume.title.strip() if resume.title and resume.title.strip() else "Resume",
         )
 
         run.bold = True
@@ -273,11 +270,7 @@ class DocxResumeRenderer(ResumeExportRenderer):
             "Skills",
         )
 
-        skills = [
-            skill.name
-            for skill in resume.skills
-            if skill.name
-        ]
+        skills = [skill.name for skill in resume.skills if skill.name]
 
         if not skills:
             return
@@ -461,10 +454,7 @@ class DocxResumeRenderer(ResumeExportRenderer):
         if expiration_date is None:
             return issued
 
-        return (
-            f"{issued} | "
-            f"Expires: {expiration_date.strftime('%B %Y')}"
-        )
+        return f"{issued} | " f"Expires: {expiration_date.strftime('%B %Y')}"
 
     def _build_filename(
         self,
@@ -476,9 +466,7 @@ class DocxResumeRenderer(ResumeExportRenderer):
             filename = "resume"
 
         sanitized = "".join(
-            character
-            if character.isalnum() or character in {" ", "-", "_"}
-            else "_"
+            character if character.isalnum() or character in {" ", "-", "_"} else "_"
             for character in filename
         )
 

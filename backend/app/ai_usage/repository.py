@@ -391,3 +391,95 @@ class AIUsageRepository:
                 statement,
             ).all()
         }
+
+
+
+        
+    def count_all(self) -> int:
+        """
+        Return the total number of AI usage records.
+        """
+
+        statement = select(
+            func.count(AIUsage.id),
+        )
+
+        return self.db.scalar(
+            statement,
+        ) or 0
+
+    def count_by_status(
+        self,
+        *,
+        status: AIRequestStatus,
+    ) -> int:
+        """
+        Return the number of AI requests with the given status.
+        """
+
+        statement = select(
+            func.count(AIUsage.id),
+        ).where(
+            AIUsage.status == status,
+        )
+
+        return self.db.scalar(
+            statement,
+        ) or 0
+
+    def sum_total_tokens(self) -> int:
+        """
+        Return the total number of AI tokens consumed platform-wide.
+        """
+
+        statement = select(
+            func.coalesce(
+                func.sum(
+                    AIUsage.total_tokens,
+                ),
+                0,
+            ),
+        )
+
+        return self.db.scalar(
+            statement,
+        ) or 0
+
+    def sum_estimated_cost(self) -> Decimal:
+        """
+        Return the total estimated AI cost platform-wide.
+        """
+
+        statement = select(
+            func.coalesce(
+                func.sum(
+                    AIUsage.estimated_cost,
+                ),
+                0,
+            ),
+        )
+
+        value = self.db.scalar(
+            statement,
+        )
+
+        return Decimal(
+            str(value or 0),
+        )
+
+    def average_latency(self) -> float | None:
+        """
+        Return the average AI request latency platform-wide.
+        """
+
+        statement = select(
+            func.avg(
+                AIUsage.latency_ms,
+            ),
+        )
+
+        value = self.db.scalar(
+            statement,
+        )
+
+        return float(value) if value is not None else None

@@ -3,6 +3,12 @@ from logging import getLogger
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from app.admin.exceptions import (
+    AdminAccessDenied,
+    AdminAuditLogNotFound,
+    AdminUserActionNotAllowed,
+    AdminUserNotFound,
+)
 from app.auth.exceptions import (
     AccountInactive,
     EmailAlreadyRegistered,
@@ -91,11 +97,17 @@ EXCEPTION_HANDLERS: tuple[tuple[type[Exception], int], ...] = (
     (EmailNotVerified, 403),
     (AccountInactive, 403),
     (OAuthAccountConflict, 409),
+    # Administrative user management
+    (AdminUserNotFound, 404),
+    (AdminUserActionNotAllowed, 409),
+    (AdminAuditLogNotFound, 404),
     # Google OAuth
     (GoogleAuthenticationFailed, 401),
     (GoogleAuthorizationCancelled, 400),
     (GoogleEmailNotAvailable, 400),
     (GoogleEmailNotVerified, 403),
+    # Administration
+    (AdminAccessDenied, 403),
     # Email verification
     (VerificationTokenInvalid, 400),
     (VerificationTokenExpired, 400),

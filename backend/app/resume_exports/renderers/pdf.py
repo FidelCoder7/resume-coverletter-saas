@@ -56,9 +56,7 @@ class PdfResumeRenderer(ResumeExportRenderer):
             filename = "resume"
 
         sanitized = "".join(
-            character
-            if character.isalnum() or character in {" ", "-", "_"}
-            else "_"
+            character if character.isalnum() or character in {" ", "-", "_"} else "_"
             for character in filename
         )
 

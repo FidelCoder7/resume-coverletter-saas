@@ -2,6 +2,7 @@ from sqlalchemy import Enum
 
 from app.common.constants import (
     AccountStatus,
+    AdminAuditAction,
     AIFeature,
     AIRequestStatus,
     BillingTransactionType,
@@ -19,6 +20,13 @@ from app.common.constants import (
 user_role_enum = Enum(
     UserRole,
     name="user_role",
+)
+
+admin_audit_action_enum = Enum(
+    AdminAuditAction,
+    name="admin_audit_action",
+    values_callable=lambda enum_class: [member.value for member in enum_class],
+    create_type=True,
 )
 
 account_status_enum = Enum(

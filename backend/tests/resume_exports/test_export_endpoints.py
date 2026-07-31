@@ -29,10 +29,7 @@ def test_export_resume_as_pdf(
 
     content_disposition = response.headers["content-disposition"]
 
-    assert (
-        'attachment; filename="Backend_Developer_Resume.pdf"'
-        == content_disposition
-    )
+    assert 'attachment; filename="Backend_Developer_Resume.pdf"' == content_disposition
 
     assert response.content
     assert response.content.startswith(b"%PDF")
@@ -63,10 +60,7 @@ def test_export_resume_as_docx(
 
     content_disposition = response.headers["content-disposition"]
 
-    assert (
-        'attachment; filename="Backend_Developer_Resume.docx"'
-        == content_disposition
-    )
+    assert 'attachment; filename="Backend_Developer_Resume.docx"' == content_disposition
 
     assert response.content
 
@@ -124,10 +118,7 @@ def test_export_resume_as_docx_contains_resume_content(
         BytesIO(response.content),
     )
 
-    document_text = "\n".join(
-        paragraph.text
-        for paragraph in document.paragraphs
-    )
+    document_text = "\n".join(paragraph.text for paragraph in document.paragraphs)
 
     assert resume.title in document_text
     assert resume.summary in document_text
@@ -194,9 +185,7 @@ def test_export_nonexistent_resume_returns_not_found(
 ):
     client, _ = authenticated_client
 
-    nonexistent_resume_id = (
-        "00000000-0000-0000-0000-000000000000"
-    )
+    nonexistent_resume_id = "00000000-0000-0000-0000-000000000000"
 
     pdf_response = client.get(
         f"/api/resumes/{nonexistent_resume_id}/export/pdf",

@@ -12,6 +12,15 @@ class UserRole(StrEnum):
     ADMIN = "admin"
 
 
+class AdminAuditAction(StrEnum):
+    USER_SUSPENDED = "user_suspended"
+    USER_ACTIVATED = "user_activated"
+    USER_DELETED = "user_deleted"
+    USER_RESTORED = "user_restored"
+    USER_ROLE_CHANGED = "user_role_changed"
+    USER_SUBSCRIPTION_CHANGED = "user_subscription_changed"
+
+
 class AccountStatus(StrEnum):
     PENDING = "pending"
     ACTIVE = "active"

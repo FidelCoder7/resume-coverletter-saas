@@ -10,11 +10,10 @@ from tests.factories.resume_factory import make_resume
 @pytest.fixture
 def resume():
     resume = make_resume(
-    user_id="00000000-0000-0000-0000-000000000001",
-    title="Backend Resume",
-    summary="Python Backend Developer",
+        user_id="00000000-0000-0000-0000-000000000001",
+        title="Backend Resume",
+        summary="Python Backend Developer",
     )
-
 
     resume.experiences = []
     resume.educations = []
@@ -27,7 +26,6 @@ def resume():
 
 def test_pdf_renderer_metadata():
     renderer = PdfResumeRenderer()
-
 
     assert renderer.media_type == "application/pdf"
     assert renderer.file_extension == "pdf"
@@ -58,7 +56,6 @@ def test_pdf_renderer_contains_resume_content(
 ):
     renderer = PdfResumeRenderer()
 
-
     result = renderer.render(
         resume,
     )
@@ -67,10 +64,7 @@ def test_pdf_renderer_contains_resume_content(
         BytesIO(result.content),
     )
 
-    document_text = "\n".join(
-        page.extract_text() or ""
-        for page in reader.pages
-    )
+    document_text = "\n".join(page.extract_text() or "" for page in reader.pages)
 
     assert resume.title in document_text
 
@@ -98,7 +92,6 @@ def test_pdf_renderer_uses_fallback_filename_for_empty_title(
     resume,
 ):
     resume.title = ""
-
 
     renderer = PdfResumeRenderer()
 

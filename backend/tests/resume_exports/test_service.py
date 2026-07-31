@@ -96,8 +96,7 @@ def test_export_resume_uses_docx_renderer(
         content=b"docx",
         filename="resume.docx",
         media_type=(
-            "application/"
-            "vnd.openxmlformats-officedocument.wordprocessingml.document"
+            "application/" "vnd.openxmlformats-officedocument.wordprocessingml.document"
         ),
     )
 

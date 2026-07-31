@@ -1,7 +1,7 @@
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.billing.models import PaymentTransaction
@@ -165,3 +165,73 @@ class PaymentTransactionRepository:
         self.db.refresh(transaction)
 
         return transaction
+
+
+
+    def count_all(self) -> int:
+        """
+        Return the total number of payment transactions.
+        """
+
+        statement = select(
+            func.count(PaymentTransaction.id),
+        )
+
+        return self.db.scalar(
+            statement,
+        ) or 0
+
+    def count_by_status(
+        self,
+        *,
+        status: PaymentStatus,
+    ) -> int:
+        """
+        Return the number of payment transactions with a given status.
+        """
+
+        statement = select(
+            func.count(PaymentTransaction.id),
+        ).where(
+            PaymentTransaction.status == status,
+        )
+
+        return self.db.scalar(
+            statement,
+        ) or 0
+
+    def sum_completed_amounts_by_currency(
+        self,
+    ) -> dict[str, Decimal]:
+        """
+        Return completed payment revenue grouped by currency.
+
+        Only completed transactions are included.
+        """
+
+        statement = (
+            select(
+                PaymentTransaction.currency,
+                func.coalesce(
+                    func.sum(
+                        PaymentTransaction.amount,
+                    ),
+                    0,
+                ),
+            )
+            .where(
+                PaymentTransaction.status == PaymentStatus.COMPLETED,
+            )
+            .group_by(
+                PaymentTransaction.currency,
+            )
+        )
+
+        return {
+            currency: Decimal(str(amount))
+            for currency, amount in self.db.execute(
+                statement,
+            ).all()
+        }
+    
+
