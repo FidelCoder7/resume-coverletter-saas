@@ -9,11 +9,11 @@ function ThemeProvider({ children }: ThemeProviderProps) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
+      defaultTheme="system"
+      enableSystem
       disableTransitionOnChange
     >
-      {children}{' '}
+      {children}
     </NextThemesProvider>
   )
 }

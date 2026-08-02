@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -17,8 +17,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+interface LoginLocationState {
+  from?: {
+    pathname: string
+    search?: string
+    hash?: string
+  }
+}
+
 function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -42,7 +51,13 @@ function Login() {
 
       toast.success('Welcome back!')
 
-      navigate('/', { replace: true })
+      const state = location.state as LoginLocationState | null
+
+      const destination = state?.from
+        ? `${state.from.pathname}${state.from.search ?? ''}${state.from.hash ?? ''}`
+        : '/dashboard'
+
+      navigate(destination, { replace: true })
     } catch (error) {
       toast.error(getApiErrorMessage(error))
     } finally {
