@@ -1,4 +1,3 @@
-
 import { createBrowserRouter } from 'react-router-dom'
 
 import ProtectedRoute from '@/features/auth/components/ProtectedRoute'
@@ -13,6 +12,15 @@ import NotFound from '@/pages/NotFound'
 import Register from '@/pages/auth/Register'
 import ResetPassword from '@/pages/auth/ResetPassword'
 import VerifyEmail from '@/pages/auth/VerifyEmail'
+import CreateResume from '@/pages/resumes/CreateResume'
+import EditResume from '@/pages/resumes/EditResume'
+import ResumeDashboard from '@/pages/resumes/ResumeDashboard'
+import ResumeManager from '@/pages/resumes/ResumeManager'
+import ExperienceManagement from '@/pages/resumes/ExperienceManagement'
+import EducationManagement from '@/pages/resumes/EducationManagement'
+import SkillsManagement from '@/pages/resumes/SkillsManagement'
+import ProjectsManagement from '@/pages/resumes/ProjectsManagement'
+import CertificationsManagement from '@/pages/resumes/CertificationsManagement'
 
 export const router = createBrowserRouter([
   {
@@ -64,12 +72,64 @@ export const router = createBrowserRouter([
         handle: {
           title: 'Resumes',
         },
-        element: (
-          <ComingSoon
-            title="Resumes"
-            description="Resume management and AI-powered resume generation will be available here."
-          />
-        ),
+        element: <ResumeDashboard />,
+      },
+      {
+        path: 'resumes/new',
+        handle: {
+          title: 'Create Resume',
+        },
+        element: <CreateResume />,
+      },
+      {
+        path: 'resumes/:resumeId/experience',
+        handle: {
+          title: 'Experience Management',
+        },
+        element: <ExperienceManagement />,
+      },
+
+      {
+        path: 'resumes/:resumeId/education',
+        handle: {
+          title: 'Education Management',
+        },
+        element: <EducationManagement />,
+      },
+      {
+        path: 'resumes/:resumeId/skills',
+        handle: {
+          title: 'Skills Management',
+        },
+        element: <SkillsManagement />,
+      },
+      {
+        path: 'resumes/:resumeId/projects',
+        handle: {
+          title: 'Projects Management',
+        },
+        element: <ProjectsManagement />,
+      },
+      {
+        path: 'resumes/:resumeId/certifications',
+        handle: {
+          title: 'Certifications Management',
+        },
+        element: <CertificationsManagement />,
+      },
+      {
+        path: 'resumes/:resumeId',
+        handle: {
+          title: 'Resume Manager',
+        },
+        element: <ResumeManager />,
+      },
+      {
+        path: 'resumes/:resumeId/edit',
+        handle: {
+          title: 'Edit Resume',
+        },
+        element: <EditResume />,
       },
       {
         path: 'cover-letters',
