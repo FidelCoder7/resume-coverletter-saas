@@ -68,4 +68,4 @@ class ProjectRepository:
         project: Project,
     ) -> None:
         self.db.delete(project)
-        self.db.commit()
+        self.db.flush()
