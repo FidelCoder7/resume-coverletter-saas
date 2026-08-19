@@ -2,6 +2,7 @@ import {
   Award,
   BriefcaseBusiness,
   ChevronLeft,
+  FileText,
   GraduationCap,
   Pencil,
   ScrollText,
@@ -12,7 +13,7 @@ import {
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { ComponentType } from 'react'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -20,18 +21,30 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+
 import {
   useDeleteResume,
   useResume,
 } from '@/features/resumes/hooks/use_resumes'
+import { useExperiences } from '@/features/resumes/hooks/use_experiences'
+import { useEducations } from '@/features/resumes/hooks/use_educations'
+import { useSkills } from '@/features/resumes/hooks/use_skills'
+import { useProjects } from '@/features/resumes/hooks/use_projects'
+import { useCertifications } from '@/features/resumes/hooks/use_certifications'
+
 import { getApiErrorMessage } from '@/utils/api_error'
-import { buttonVariants } from '@/components/ui/button'
 
 function ResumeManager() {
   const { resumeId } = useParams<{ resumeId: string }>()
   const navigate = useNavigate()
 
   const { data: resume, isLoading, isError, error } = useResume(resumeId ?? '')
+
+  const experiencesQuery = useExperiences(resumeId ?? '')
+  const educationsQuery = useEducations(resumeId ?? '')
+  const skillsQuery = useSkills(resumeId ?? '')
+  const projectsQuery = useProjects(resumeId ?? '')
+  const certificationsQuery = useCertifications(resumeId ?? '')
 
   const deleteMutation = useDeleteResume()
 
@@ -124,6 +137,26 @@ function ResumeManager() {
     )
   }
 
+  const experienceCount = experiencesQuery.data?.length ?? 0
+  const educationCount = educationsQuery.data?.length ?? 0
+  const skillCount = skillsQuery.data?.length ?? 0
+  const projectCount = projectsQuery.data?.length ?? 0
+  const certificationCount = certificationsQuery.data?.length ?? 0
+
+  const contentCount =
+    experienceCount +
+    educationCount +
+    skillCount +
+    projectCount +
+    certificationCount
+
+  const isLoadingDetails =
+    experiencesQuery.isLoading ||
+    educationsQuery.isLoading ||
+    skillsQuery.isLoading ||
+    projectsQuery.isLoading ||
+    certificationsQuery.isLoading
+
   return (
     <div className="mx-auto w-full max-w-7xl space-y-8">
       <div>
@@ -186,61 +219,107 @@ function ResumeManager() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Resume Overview</CardTitle>
+          <div className="flex items-center gap-3">
+            <FileText className="size-6 text-primary" />
 
-          <CardDescription>
-            Manage the core information and content that make up this resume.
-          </CardDescription>
+            <div>
+              <CardTitle>Resume Overview</CardTitle>
+
+              <CardDescription>
+                Review the core information and content that make up this
+                resume.
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
 
-        <CardContent>
-          <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-            {resume.summary || 'No professional summary has been added yet.'}
-          </p>
+        <CardContent className="space-y-6">
+          <div>
+            <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+              {resume.summary || 'No professional summary has been added yet.'}
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <StatusItem
+              label="Resume Sections"
+              value={isLoadingDetails ? 'Loading...' : `${contentCount} items`}
+            />
+
+            <StatusItem
+              label="Default Resume"
+              value={resume.is_default ? 'Yes' : 'No'}
+            />
+
+            <StatusItem
+              label="AI Generated Content"
+              value={resume.generated_content ? 'Available' : 'Not generated'}
+            />
+          </div>
         </CardContent>
       </Card>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <ResumeSectionCard
-          icon={BriefcaseBusiness}
-          title="Experience"
-          description="Add and manage your professional work experience."
-          to={`/resumes/${resume.id}/experience`}
-        />
+      <section>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold">Resume Content</h3>
 
-        <ResumeSectionCard
-          icon={GraduationCap}
-          title="Education"
-          description="Manage your academic background and qualifications."
-          to={`/resumes/${resume.id}/education`}
-        />
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage the sections that make up your professional resume.
+          </p>
+        </div>
 
-        <ResumeSectionCard
-          icon={Wrench}
-          title="Skills"
-          description="Add technical and professional skills to your resume."
-          to={`/resumes/${resume.id}/skills`}
-        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ResumeSectionCard
+            icon={BriefcaseBusiness}
+            title="Experience"
+            description="Add and manage your professional work experience."
+            count={experienceCount}
+            isLoading={experiencesQuery.isLoading}
+            to={`/resumes/${resume.id}/experience`}
+          />
 
-        <ResumeSectionCard
-          icon={ScrollText}
-          title="Projects"
-          description="Showcase projects and the technologies you've used."
-          to={`/resumes/${resume.id}/projects`}
-        />
+          <ResumeSectionCard
+            icon={GraduationCap}
+            title="Education"
+            description="Manage your academic background and qualifications."
+            count={educationCount}
+            isLoading={educationsQuery.isLoading}
+            to={`/resumes/${resume.id}/education`}
+          />
 
-        <ResumeSectionCard
-          icon={Award}
-          title="Certifications"
-          description="Manage professional certifications and credentials."
-          to={`/resumes/${resume.id}/certifications`}
-        />
+          <ResumeSectionCard
+            icon={Wrench}
+            title="Skills"
+            description="Add technical and professional skills to your resume."
+            count={skillCount}
+            isLoading={skillsQuery.isLoading}
+            to={`/resumes/${resume.id}/skills`}
+          />
 
-        <ResumeSectionCard
-          icon={Sparkles}
-          title="AI Resume Tools"
-          description="Generate, improve, and optimize this resume with AI."
-        />
+          <ResumeSectionCard
+            icon={ScrollText}
+            title="Projects"
+            description="Showcase projects and the technologies you've used."
+            count={projectCount}
+            isLoading={projectsQuery.isLoading}
+            to={`/resumes/${resume.id}/projects`}
+          />
+
+          <ResumeSectionCard
+            icon={Award}
+            title="Certifications"
+            description="Manage professional certifications and credentials."
+            count={certificationCount}
+            isLoading={certificationsQuery.isLoading}
+            to={`/resumes/${resume.id}/certifications`}
+          />
+
+          <ResumeSectionCard
+            icon={Sparkles}
+            title="AI Resume Tools"
+            description="Generate, improve, and optimize this resume with AI."
+          />
+        </div>
       </section>
 
       <Card>
@@ -252,7 +331,7 @@ function ResumeManager() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatusItem
             label="Default Resume"
             value={resume.is_default ? 'Yes' : 'No'}
@@ -277,6 +356,8 @@ interface ResumeSectionCardProps {
   icon: ComponentType<{ className?: string }>
   title: string
   description: string
+  count?: number
+  isLoading?: boolean
   to?: string
 }
 
@@ -284,6 +365,8 @@ function ResumeSectionCard({
   icon: Icon,
   title,
   description,
+  count,
+  isLoading = false,
   to,
 }: ResumeSectionCardProps) {
   return (
@@ -291,7 +374,15 @@ function ResumeSectionCard({
       <CardHeader>
         <Icon className="mb-2 size-6 text-primary" />
 
-        <CardTitle>{title}</CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle>{title}</CardTitle>
+
+          {count !== undefined && (
+            <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">
+              {isLoading ? '...' : count}
+            </span>
+          )}
+        </div>
 
         <CardDescription>{description}</CardDescription>
       </CardHeader>

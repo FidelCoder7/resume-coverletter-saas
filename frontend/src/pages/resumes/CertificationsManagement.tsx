@@ -291,11 +291,19 @@ function CertificationsManagement() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      disabled={deleteMutation.isPending}
+                      disabled={
+                        deleteMutation.isPending &&
+                        deleteMutation.variables?.certificationId ===
+                          certification.id
+                      }
                       onClick={() => handleDelete(certification)}
                     >
                       <Trash2 />
-                      Delete
+                      {deleteMutation.isPending &&
+                      deleteMutation.variables?.certificationId ===
+                        certification.id
+                        ? 'Deleting...'
+                        : 'Delete'}
                     </Button>
                   </div>
                 </div>

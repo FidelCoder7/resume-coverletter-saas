@@ -2,7 +2,7 @@ import { ChevronLeft, Pencil, Plus, Wrench, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { buttonVariants } from '@/components/ui/button'
 
 import SkillForm from '@/features/resumes/components/SkillForm'
 import {

@@ -1,7 +1,17 @@
-import { ArrowRight, Bot, FileText, Mail, Sparkles, Target } from 'lucide-react'
+import {
+  ArrowRight,
+  Bot,
+  FileText,
+  Mail,
+  Plus,
+  Sparkles,
+  Target,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth/hooks/use_auth'
+import { useResumes } from '@/features/resumes/hooks/use_resumes'
+
 import { buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -14,7 +24,11 @@ import {
 function Dashboard() {
   const { user } = useAuth()
 
+  const { data: resumes = [], isLoading: resumesLoading } = useResumes()
+
   const firstName = user?.full_name.split(' ')[0] ?? 'there'
+
+  const resumeCount = resumes.length
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-8">
@@ -42,10 +56,14 @@ function Dashboard() {
           </CardHeader>
 
           <CardContent>
-            <p className="text-2xl font-semibold">0</p>
+            <p className="text-2xl font-semibold">
+              {resumesLoading ? '...' : resumeCount}
+            </p>
 
             <p className="mt-1 text-xs text-muted-foreground">
-              Resume management coming soon
+              {resumeCount === 0
+                ? 'Create your first resume'
+                : `${resumeCount === 1 ? 'Resume' : 'Resumes'} in your workspace`}
             </p>
           </CardContent>
         </Card>
@@ -113,6 +131,65 @@ function Dashboard() {
 
       <section>
         <div className="mb-4">
+          <h3 className="text-lg font-semibold">Resume workspace</h3>
+
+          <p className="mt-1 text-sm text-muted-foreground">
+            Create and manage the content that makes up your professional
+            resumes.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="transition-shadow hover:shadow-md">
+            <CardHeader>
+              <FileText className="mb-2 size-6 text-primary" />
+
+              <CardTitle>Manage Your Resumes</CardTitle>
+
+              <CardDescription>
+                Create, edit, and organize your resumes, including experience,
+                education, skills, projects, and certifications.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              <Link
+                to="/resumes"
+                className={buttonVariants({ variant: 'outline' })}
+              >
+                Manage resumes
+                <ArrowRight />
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="transition-shadow hover:shadow-md">
+            <CardHeader>
+              <Plus className="mb-2 size-6 text-primary" />
+
+              <CardTitle>Create a New Resume</CardTitle>
+
+              <CardDescription>
+                Start a new resume and build its professional content from the
+                ground up.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              <Link
+                to="/resumes/new"
+                className={buttonVariants({ variant: 'outline' })}
+              >
+                Create resume
+                <ArrowRight />
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-4">
           <h3 className="text-lg font-semibold">Quick actions</h3>
 
           <p className="mt-1 text-sm text-muted-foreground">
@@ -125,10 +202,10 @@ function Dashboard() {
             <CardHeader>
               <FileText className="mb-2 size-6 text-primary" />
 
-              <CardTitle>Create a Resume</CardTitle>
+              <CardTitle>Manage Your Resumes</CardTitle>
 
               <CardDescription>
-                Build and manage a professional resume tailored to your career
+                Build and manage professional resumes tailored to your career
                 goals.
               </CardDescription>
             </CardHeader>
@@ -198,8 +275,9 @@ function Dashboard() {
             <CardTitle>Ready to build your next application?</CardTitle>
 
             <CardDescription>
-              Your workspace is ready. Choose an action above to get started
-              with your resume and cover letter workflow.
+              Your resume workspace is ready. Manage your resumes and build out
+              the experience, education, skills, projects, and certifications
+              needed for your applications.
             </CardDescription>
           </CardHeader>
         </Card>

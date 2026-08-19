@@ -2,7 +2,7 @@ import { ChevronLeft, GraduationCap, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -20,7 +20,6 @@ import {
 import { useResume } from '@/features/resumes/hooks/use_resumes'
 import type { Education } from '@/features/resumes/types'
 import type { EducationFormValues } from '@/features/resumes/schemas/education_schemas'
-import { buttonVariants } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/utils/api_error'
 
 function EducationManagement() {
