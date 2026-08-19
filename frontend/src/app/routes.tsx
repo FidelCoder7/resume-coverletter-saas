@@ -15,6 +15,7 @@ import VerifyEmail from '@/pages/auth/VerifyEmail'
 import CreateResume from '@/pages/resumes/CreateResume'
 import EditResume from '@/pages/resumes/EditResume'
 import ResumeDashboard from '@/pages/resumes/ResumeDashboard'
+import ResumeDetails from '@/pages/resumes/ResumeDetails'
 import ResumeManager from '@/pages/resumes/ResumeManager'
 import ExperienceManagement from '@/pages/resumes/ExperienceManagement'
 import EducationManagement from '@/pages/resumes/EducationManagement'
@@ -119,6 +120,13 @@ export const router = createBrowserRouter([
       },
       {
         path: 'resumes/:resumeId',
+        handle: {
+          title: 'Resume Details',
+        },
+        element: <ResumeDetails />,
+      },
+      {
+        path: 'resumes/:resumeId/manage',
         handle: {
           title: 'Resume Manager',
         },

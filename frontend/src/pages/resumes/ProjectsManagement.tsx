@@ -297,11 +297,18 @@ function ProjectsManagementContent({
                     <Button
                       variant="destructive"
                       size="sm"
-                      disabled={deleteMutation.isPending}
+                      disabled={
+                        deleteMutation.isPending &&
+                        deleteMutation.variables?.projectId === project.id
+                      }
+
                       onClick={() => handleDelete(project)}
                     >
                       <Trash2 />
-                      Delete
+                      {deleteMutation.isPending &&
+                      deleteMutation.variables?.projectId === project.id
+                        ? 'Deleting...'
+                        : 'Delete'}
                     </Button>
                   </div>
                 </div>

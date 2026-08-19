@@ -8,7 +8,7 @@ import {
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -26,7 +26,6 @@ import {
 import { useResume } from '@/features/resumes/hooks/use_resumes'
 import type { Experience } from '@/features/resumes/types'
 import type { ExperienceFormValues } from '@/features/resumes/schemas/experience_schemas'
-import { buttonVariants } from '@/components/ui/button'
 import { getApiErrorMessage } from '@/utils/api_error'
 
 function ExperienceManagement() {
@@ -278,6 +277,16 @@ function ExperienceManagement() {
           <CardContent className="pt-6">
             <p className="text-sm text-destructive">
               {getApiErrorMessage(updateMutation.error)}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {deleteMutation.isError && (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm text-destructive">
+              {getApiErrorMessage(deleteMutation.error)}
             </p>
           </CardContent>
         </Card>

@@ -163,7 +163,7 @@ function ResumeDashboard() {
                   </Button>
 
                   <Link
-                    to={`/resumes/${resume.id}`}
+                    to={`/resumes/${resume.id}/manage`}
                     className={buttonVariants({ variant: 'outline' })}
                   >
                     Manage
