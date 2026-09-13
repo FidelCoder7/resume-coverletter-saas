@@ -166,8 +166,6 @@ class PaymentTransactionRepository:
 
         return transaction
 
-
-
     def count_all(self) -> int:
         """
         Return the total number of payment transactions.
@@ -177,9 +175,12 @@ class PaymentTransactionRepository:
             func.count(PaymentTransaction.id),
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def count_by_status(
         self,
@@ -196,9 +197,12 @@ class PaymentTransactionRepository:
             PaymentTransaction.status == status,
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def sum_completed_amounts_by_currency(
         self,
@@ -233,5 +237,3 @@ class PaymentTransactionRepository:
                 statement,
             ).all()
         }
-    
-

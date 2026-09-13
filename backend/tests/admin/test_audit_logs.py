@@ -1,4 +1,3 @@
-
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
@@ -279,10 +278,7 @@ def test_admin_can_list_audit_logs_for_target_user(
     assert data["total"] == 2
     assert len(data["items"]) == 2
 
-    assert all(
-        item["target_user_id"] == str(target_user.id)
-        for item in data["items"]
-    )
+    assert all(item["target_user_id"] == str(target_user.id) for item in data["items"])
 
 
 def test_admin_can_paginate_target_user_audit_logs(
@@ -368,10 +364,7 @@ def test_admin_can_list_audit_logs_for_specific_admin(
     assert data["total"] == 2
     assert len(data["items"]) == 2
 
-    assert all(
-        item["admin_id"] == str(admin.id)
-        for item in data["items"]
-    )
+    assert all(item["admin_id"] == str(admin.id) for item in data["items"])
 
 
 def test_admin_can_paginate_admin_audit_logs(
@@ -525,7 +518,6 @@ def test_target_user_audit_logs_returns_empty_result(
     assert data["total_pages"] == 0
 
 
-
 def test_admin_can_filter_audit_logs_by_action(
     admin_client,
     db_session,
@@ -566,9 +558,7 @@ def test_admin_can_filter_audit_logs_by_action(
 
     assert data["total"] == 1
     assert len(data["items"]) == 1
-    assert data["items"][0]["action"] == (
-        AdminAuditAction.USER_SUSPENDED.value
-    )
+    assert data["items"][0]["action"] == (AdminAuditAction.USER_SUSPENDED.value)
 
 
 def test_admin_can_filter_audit_logs_by_target_user(
@@ -614,9 +604,7 @@ def test_admin_can_filter_audit_logs_by_target_user(
     data = response.json()
 
     assert data["total"] == 1
-    assert data["items"][0]["target_user_id"] == (
-        str(target_user.id)
-    )
+    assert data["items"][0]["target_user_id"] == (str(target_user.id))
 
 
 def test_admin_can_filter_audit_logs_by_admin(
@@ -663,10 +651,7 @@ def test_admin_can_filter_audit_logs_by_admin(
     data = response.json()
 
     assert data["total"] == 1
-    assert data["items"][0]["admin_id"] == (
-        str(admin.id)
-    )
-
+    assert data["items"][0]["admin_id"] == (str(admin.id))
 
 
 def test_admin_can_filter_audit_logs_by_date_range(
@@ -710,9 +695,7 @@ def test_admin_can_filter_audit_logs_by_date_range(
     response = client.get(
         "/api/admin/audit-logs",
         params={
-            "created_after": (
-                now - timedelta(days=3)
-            ).isoformat(),
+            "created_after": (now - timedelta(days=3)).isoformat(),
         },
     )
 
@@ -721,9 +704,7 @@ def test_admin_can_filter_audit_logs_by_date_range(
     data = response.json()
 
     assert data["total"] == 1
-    assert data["items"][0]["action"] == (
-        AdminAuditAction.USER_ACTIVATED.value
-    )
+    assert data["items"][0]["action"] == (AdminAuditAction.USER_ACTIVATED.value)
 
 
 def test_admin_can_combine_audit_log_filters(
@@ -767,10 +748,7 @@ def test_admin_can_combine_audit_log_filters(
     data = response.json()
 
     assert data["total"] == 1
-    assert data["items"][0]["action"] == (
-        AdminAuditAction.USER_SUSPENDED.value
-    )
-
+    assert data["items"][0]["action"] == (AdminAuditAction.USER_SUSPENDED.value)
 
 
 def test_admin_audit_log_filter_supports_pagination(

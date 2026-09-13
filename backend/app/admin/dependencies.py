@@ -43,7 +43,6 @@ def require_admin(
     return current_user
 
 
-
 def get_admin_audit_log_service(
     db: Session = Depends(get_db),
 ) -> AdminAuditLogService:
@@ -73,22 +72,22 @@ def get_admin_dashboard_service(
         db,
     )
 
-    payment_repository = PaymentTransactionRepository( 
-        db, 
-    )
-     
-    ai_usage_repository = AIUsageRepository( 
-        db, 
+    payment_repository = PaymentTransactionRepository(
+        db,
     )
 
-    content_repository = AdminContentRepository( 
-        db, 
+    ai_usage_repository = AIUsageRepository(
+        db,
+    )
+
+    content_repository = AdminContentRepository(
+        db,
     )
 
     return AdminDashboardService(
         user_repository=user_repository,
         audit_repository=audit_repository,
-        payment_repository=payment_repository, 
-        ai_usage_repository=ai_usage_repository, 
+        payment_repository=payment_repository,
+        ai_usage_repository=ai_usage_repository,
         content_repository=content_repository,
     )

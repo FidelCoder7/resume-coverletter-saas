@@ -287,9 +287,6 @@ class AdminAuditLogService:
             audit_log,
         )
 
-
-
-    
     def get_by_id(
         self,
         *,
@@ -311,8 +308,6 @@ class AdminAuditLogService:
         return AdminAuditLogResponse.model_validate(
             audit_log,
         )
-
-
 
     def list_for_target_user(
         self,
@@ -393,8 +388,6 @@ class AdminAuditLogService:
             total_pages=total_pages,
         )
 
-
-    
     def list_filtered(
         self,
         *,
@@ -414,11 +407,7 @@ class AdminAuditLogService:
             created_before=query.created_before,
         )
 
-        total_pages = (
-            math.ceil(total / query.page_size)
-            if total > 0
-            else 0
-        )
+        total_pages = math.ceil(total / query.page_size) if total > 0 else 0
 
         return AdminAuditLogListResponse(
             items=logs,
@@ -427,5 +416,3 @@ class AdminAuditLogService:
             page_size=query.page_size,
             total_pages=total_pages,
         )
-
-

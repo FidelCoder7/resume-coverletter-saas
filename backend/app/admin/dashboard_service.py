@@ -90,9 +90,7 @@ class AdminDashboardService:
         # Subscription Metrics
         # --------------------------------------------------------------
 
-        subscription_counts = (
-            self.user_repository.count_users_by_subscription_plan()
-        )
+        subscription_counts = self.user_repository.count_users_by_subscription_plan()
 
         free_users = subscription_counts.get(
             SubscriptionPlan.FREE,
@@ -110,38 +108,26 @@ class AdminDashboardService:
         # Revenue and Payment Metrics
         # --------------------------------------------------------------
 
-        total_transactions = (
-            self.payment_repository.count_all()
+        total_transactions = self.payment_repository.count_all()
+
+        completed_transactions = self.payment_repository.count_by_status(
+            status=PaymentStatus.COMPLETED,
         )
 
-        completed_transactions = (
-            self.payment_repository.count_by_status(
-                status=PaymentStatus.COMPLETED,
-            )
+        pending_transactions = self.payment_repository.count_by_status(
+            status=PaymentStatus.PENDING,
         )
 
-        pending_transactions = (
-            self.payment_repository.count_by_status(
-                status=PaymentStatus.PENDING,
-            )
+        failed_transactions = self.payment_repository.count_by_status(
+            status=PaymentStatus.FAILED,
         )
 
-        failed_transactions = (
-            self.payment_repository.count_by_status(
-                status=PaymentStatus.FAILED,
-            )
+        cancelled_transactions = self.payment_repository.count_by_status(
+            status=PaymentStatus.CANCELLED,
         )
 
-        cancelled_transactions = (
-            self.payment_repository.count_by_status(
-                status=PaymentStatus.CANCELLED,
-            )
-        )
-
-        expired_transactions = (
-            self.payment_repository.count_by_status(
-                status=PaymentStatus.EXPIRED,
-            )
+        expired_transactions = self.payment_repository.count_by_status(
+            status=PaymentStatus.EXPIRED,
         )
 
         total_revenue_by_currency = (
@@ -152,57 +138,37 @@ class AdminDashboardService:
         # AI Usage Metrics
         # --------------------------------------------------------------
 
-        total_ai_requests = (
-            self.ai_usage_repository.count_all()
+        total_ai_requests = self.ai_usage_repository.count_all()
+
+        successful_ai_requests = self.ai_usage_repository.count_by_status(
+            status=AIRequestStatus.SUCCESS,
         )
 
-        successful_ai_requests = (
-            self.ai_usage_repository.count_by_status(
-                status=AIRequestStatus.SUCCESS,
-            )
+        failed_ai_requests = self.ai_usage_repository.count_by_status(
+            status=AIRequestStatus.FAILED,
         )
 
-        failed_ai_requests = (
-            self.ai_usage_repository.count_by_status(
-                status=AIRequestStatus.FAILED,
-            )
-        )
+        total_ai_tokens = self.ai_usage_repository.sum_total_tokens()
 
-        total_ai_tokens = (
-            self.ai_usage_repository.sum_total_tokens()
-        )
+        estimated_ai_cost = self.ai_usage_repository.sum_estimated_cost()
 
-        estimated_ai_cost = (
-            self.ai_usage_repository.sum_estimated_cost()
-        )
-
-        average_ai_latency = (
-            self.ai_usage_repository.average_latency()
-        )
+        average_ai_latency = self.ai_usage_repository.average_latency()
 
         # --------------------------------------------------------------
         # Content Metrics
         # --------------------------------------------------------------
 
-        total_resumes = (
-            self.content_repository.count_resumes()
-        )
+        total_resumes = self.content_repository.count_resumes()
 
-        generated_resumes = (
-            self.content_repository.count_generated_resumes()
-        )
+        generated_resumes = self.content_repository.count_generated_resumes()
 
-        total_cover_letters = (
-            self.content_repository.count_cover_letters()
-        )
+        total_cover_letters = self.content_repository.count_cover_letters()
 
         # --------------------------------------------------------------
         # Audit Metrics
         # --------------------------------------------------------------
 
-        total_audit_logs = (
-            self.audit_repository.count_all()
-        )
+        total_audit_logs = self.audit_repository.count_all()
 
         # --------------------------------------------------------------
         # Response
@@ -282,18 +248,14 @@ class AdminDashboardService:
             days=days,
         )
 
-        registration_results = (
-            self.user_repository.count_registrations_by_day(
-                start_date=start_date,
-                end_date=end_date,
-            )
+        registration_results = self.user_repository.count_registrations_by_day(
+            start_date=start_date,
+            end_date=end_date,
         )
 
-        audit_results = (
-            self.audit_repository.count_audit_activity_by_day(
-                start_date=start_date,
-                end_date=end_date,
-            )
+        audit_results = self.audit_repository.count_audit_activity_by_day(
+            start_date=start_date,
+            end_date=end_date,
         )
 
         registration_counts = dict(
@@ -308,11 +270,8 @@ class AdminDashboardService:
         audit_series = []
 
         for offset in range(days):
-            current_date = (
-                start_date.date()
-                + timedelta(
-                    days=offset,
-                )
+            current_date = start_date.date() + timedelta(
+                days=offset,
             )
 
             registration_series.append(
