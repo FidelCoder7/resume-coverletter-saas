@@ -55,7 +55,6 @@ def get_admin_user_service(
     )
 
 
-
 @router.get(
     "/access",
 )
@@ -129,6 +128,7 @@ def suspend_user(
         current_admin=current_admin,
         reason=payload.reason if payload else None,
     )
+
 
 @router.post(
     "/users/{user_id}/reactivate",
@@ -235,7 +235,6 @@ def list_admin_audit_logs(
         page=page,
         page_size=page_size,
     )
-
 
 
 @router.get(

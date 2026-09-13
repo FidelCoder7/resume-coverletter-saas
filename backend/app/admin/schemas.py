@@ -177,8 +177,7 @@ class AdminAuditLogListQuery(BaseModel):
             and self.created_after > self.created_before
         ):
             raise ValueError(
-                "created_after must be earlier than or equal to "
-                "created_before.",
+                "created_after must be earlier than or equal to " "created_before.",
             )
 
         return self
@@ -206,7 +205,7 @@ class AdminSubscriptionMetrics(BaseModel):
     free_users: int
     pro_users: int
     active_subscriptions: int
-    
+
 
 class AdminRevenueMetrics(BaseModel):
     """
@@ -225,6 +224,7 @@ class AdminRevenueMetrics(BaseModel):
     expired_transactions: int
     total_revenue_by_currency: dict[str, Decimal]
 
+
 class AdminAIUsageMetrics(BaseModel):
     """
     Aggregated platform-wide AI usage metrics.
@@ -236,6 +236,7 @@ class AdminAIUsageMetrics(BaseModel):
     total_tokens: int
     estimated_cost: Decimal
     average_latency_ms: float | None
+
 
 class AdminContentMetrics(BaseModel):
     """
@@ -259,6 +260,7 @@ class AdminPlatformActivityMetrics(BaseModel):
     total_payment_transactions: int
     total_audit_logs: int
 
+
 class AdminDashboardMetricsResponse(BaseModel):
     """
     Aggregated metrics displayed on the administrative dashboard.
@@ -271,6 +273,7 @@ class AdminDashboardMetricsResponse(BaseModel):
     content: AdminContentMetrics
     platform: AdminPlatformActivityMetrics
     total_audit_logs: int
+
 
 class AdminTimeSeriesPoint(BaseModel):
     """

@@ -50,10 +50,7 @@ class AdminUserRepository:
             search_pattern = f"%{search.strip()}%"
 
             filters.append(
-                
-                    User.email.ilike(search_pattern)
-                    | User.full_name.ilike(search_pattern)
-                
+                User.email.ilike(search_pattern) | User.full_name.ilike(search_pattern)
             )
 
         if role is not None:
@@ -80,9 +77,12 @@ class AdminUserRepository:
                 *filters,
             )
 
-        total = self.db.scalar(
-            count_statement,
-        ) or 0
+        total = (
+            self.db.scalar(
+                count_statement,
+            )
+            or 0
+        )
 
         offset = (page - 1) * page_size
 
@@ -169,7 +169,6 @@ class AdminUserRepository:
 
         self.db.rollback()
 
-
     def count_users(
         self,
         *,
@@ -204,11 +203,12 @@ class AdminUserRepository:
             *filters,
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
-
-
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def count_users_by_subscription_plan(
         self,
@@ -217,25 +217,18 @@ class AdminUserRepository:
         Return the number of users grouped by subscription plan.
         """
 
-        statement = (
-            select(
-                User.subscription_plan,
-                func.count(User.id),
-            )
-            .group_by(
-                User.subscription_plan,
-            )
+        statement = select(
+            User.subscription_plan,
+            func.count(User.id),
+        ).group_by(
+            User.subscription_plan,
         )
 
         results = self.db.execute(
             statement,
         ).all()
 
-        return {
-            plan: count
-            for plan, count in results
-        }
-
+        return {plan: count for plan, count in results}
 
     def count_registrations_by_day(
         self,
@@ -268,11 +261,8 @@ class AdminUserRepository:
             statement,
         ).all()
 
-        return [
-            (result.date, result.count)
-            for result in results
-        ]
-    
+        return [(result.date, result.count) for result in results]
+
 
 class AdminAuditLogRepository:
     """
@@ -350,13 +340,16 @@ class AdminAuditLogRepository:
             AdminAuditLog.target_user_id == target_user_id,
         ]
 
-        total = self.db.scalar(
-            select(
-                func.count(AdminAuditLog.id),
-            ).where(
-                *filters,
-            ),
-        ) or 0
+        total = (
+            self.db.scalar(
+                select(
+                    func.count(AdminAuditLog.id),
+                ).where(
+                    *filters,
+                ),
+            )
+            or 0
+        )
 
         offset = (page - 1) * page_size
 
@@ -394,13 +387,16 @@ class AdminAuditLogRepository:
             AdminAuditLog.admin_id == admin_id,
         ]
 
-        total = self.db.scalar(
-            select(
-                func.count(AdminAuditLog.id),
-            ).where(
-                *filters,
-            ),
-        ) or 0
+        total = (
+            self.db.scalar(
+                select(
+                    func.count(AdminAuditLog.id),
+                ).where(
+                    *filters,
+                ),
+            )
+            or 0
+        )
 
         offset = (page - 1) * page_size
 
@@ -433,11 +429,14 @@ class AdminAuditLogRepository:
         Return the most recent administrative audit events.
         """
 
-        total = self.db.scalar(
-            select(
-                func.count(AdminAuditLog.id),
-            ),
-        ) or 0
+        total = (
+            self.db.scalar(
+                select(
+                    func.count(AdminAuditLog.id),
+                ),
+            )
+            or 0
+        )
 
         offset = (page - 1) * page_size
 
@@ -458,7 +457,6 @@ class AdminAuditLogRepository:
         )
 
         return logs, total
-
 
     def list_filtered(
         self,
@@ -511,9 +509,12 @@ class AdminAuditLogRepository:
                 *filters,
             )
 
-        total = self.db.scalar(
-            count_statement,
-        ) or 0
+        total = (
+            self.db.scalar(
+                count_statement,
+            )
+            or 0
+        )
 
         offset = (page - 1) * page_size
 
@@ -536,7 +537,6 @@ class AdminAuditLogRepository:
 
         return logs, total
 
-
     def count_all(self) -> int:
         """
         Return the total number of administrative audit logs.
@@ -546,11 +546,12 @@ class AdminAuditLogRepository:
             func.count(AdminAuditLog.id),
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
-
-
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def count_audit_activity_by_day(
         self,
@@ -594,18 +595,14 @@ class AdminAuditLogRepository:
             statement,
         ).all()
 
-        return [
-            (result.date, result.count)
-            for result in results
-        ]
-
+        return [(result.date, result.count) for result in results]
 
 
 class AdminContentRepository:
     """
     Repository for administrative platform content metrics.
 
-    
+
     This repository provides read-only aggregate queries for resumes
     and cover letters.
     """
@@ -625,9 +622,12 @@ class AdminContentRepository:
             func.count(Resume.id),
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def count_generated_resumes(self) -> int:
         """
@@ -640,9 +640,12 @@ class AdminContentRepository:
             Resume.generated_content.is_not(None),
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def count_cover_letters(self) -> int:
         """
@@ -653,6 +656,9 @@ class AdminContentRepository:
             func.count(CoverLetter.id),
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )

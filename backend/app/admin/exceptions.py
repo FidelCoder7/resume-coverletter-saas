@@ -12,5 +12,6 @@ class AdminUserActionNotAllowed(Exception):
     by the current account state or business rules.
     """
 
+
 class AdminAuditLogNotFound(Exception):
     """Raised when an administrative audit log does not exist."""

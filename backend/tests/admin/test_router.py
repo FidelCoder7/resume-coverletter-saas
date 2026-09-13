@@ -82,7 +82,6 @@ def test_admin_can_get_dashboard_metrics(
     assert response.status_code == 200
 
 
-
 def test_admin_can_get_dashboard_time_series(
     admin_client,
 ):

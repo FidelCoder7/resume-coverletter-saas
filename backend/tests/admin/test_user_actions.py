@@ -240,7 +240,6 @@ def test_suspend_nonexistent_user_returns_404(
     }
 
 
-
 def test_reactivate_nonexistent_user_returns_404(
     admin_client,
 ):
@@ -282,15 +281,12 @@ def test_admin_suspend_creates_audit_log(
         .filter(
             AdminAuditLog.admin_id == admin.id,
             AdminAuditLog.target_user_id == target_user.id,
-            AdminAuditLog.action
-            == AdminAuditAction.USER_SUSPENDED,
+            AdminAuditLog.action == AdminAuditAction.USER_SUSPENDED,
         )
         .one()
     )
 
-    assert audit_log.reason == (
-        "Suspicious account activity."
-    )
+    assert audit_log.reason == ("Suspicious account activity.")
 
     assert audit_log.event_metadata == {
         "previous_status": "active",
@@ -323,18 +319,14 @@ def test_admin_reactivate_creates_audit_log(
         .filter(
             AdminAuditLog.admin_id == admin.id,
             AdminAuditLog.target_user_id == target_user.id,
-            AdminAuditLog.action
-            == AdminAuditAction.USER_ACTIVATED,
+            AdminAuditLog.action == AdminAuditAction.USER_ACTIVATED,
         )
         .one()
     )
 
-    assert audit_log.reason == (
-        "Account suspension reviewed."
-    )
+    assert audit_log.reason == ("Account suspension reviewed.")
 
     assert audit_log.event_metadata == {
         "previous_status": "suspended",
         "new_status": "active",
     }
- 
