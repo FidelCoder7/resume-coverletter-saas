@@ -191,6 +191,27 @@ class AIUsageRepository:
 
         return self.db.scalar(statement) or 0
 
+
+
+    def count_by_user_and_period(
+        self,
+        *,
+        user_id: UUID,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> int:
+        """
+        Count all AI usage requests for a user within a period.
+        """
+
+        return self.db.scalar(
+            select(func.count(AIUsage.id)).where(
+                AIUsage.user_id == user_id,
+                AIUsage.created_at >= start_date,
+                AIUsage.created_at < end_date,
+            )
+        ) or 0
+
     def sum_tokens_by_user_and_period(
         self,
         *,
@@ -392,9 +413,6 @@ class AIUsageRepository:
             ).all()
         }
 
-
-
-        
     def count_all(self) -> int:
         """
         Return the total number of AI usage records.
@@ -404,9 +422,12 @@ class AIUsageRepository:
             func.count(AIUsage.id),
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def count_by_status(
         self,
@@ -423,9 +444,12 @@ class AIUsageRepository:
             AIUsage.status == status,
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def sum_total_tokens(self) -> int:
         """
@@ -441,9 +465,12 @@ class AIUsageRepository:
             ),
         )
 
-        return self.db.scalar(
-            statement,
-        ) or 0
+        return (
+            self.db.scalar(
+                statement,
+            )
+            or 0
+        )
 
     def sum_estimated_cost(self) -> Decimal:
         """

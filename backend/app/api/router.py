@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.admin.router import router as admin_router
+from app.ai_usage.router import router as ai_usage_router
 from app.api.v1.router import router as v1_router
 from app.ats.router import router as ats_router
 from app.billing.router import router as billing_router
@@ -53,6 +54,10 @@ api_router.include_router(
 
 api_router.include_router(
     ats_router,
+)
+
+api_router.include_router(
+    ai_usage_router,
 )
 
 api_router.include_router(
