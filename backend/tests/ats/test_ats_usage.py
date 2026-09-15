@@ -30,7 +30,7 @@ def build_metadata() -> AIExecutionMetadata:
 def test_successful_ats_optimization_records_ai_usage():
     ai_service = MagicMock()
 
-    ai_service.generate_ats_optimization.return_value = AIExecutionResult(
+    ai_service.execute_ats_optimization.return_value = AIExecutionResult(
         content="Optimized ATS resume",
         metadata=build_metadata(),
     )
@@ -75,9 +75,7 @@ def test_successful_ats_optimization_records_ai_usage():
 def test_failed_ats_optimization_does_not_record_success():
     ai_service = MagicMock()
 
-    ai_service.generate_ats_optimization.side_effect = AIProviderError(
-        "provider failed"
-    )
+    ai_service.execute_ats_optimization.side_effect = AIProviderError("provider failed")
 
     usage_service = MagicMock()
 

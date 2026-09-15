@@ -4,7 +4,6 @@ from app.ai.contracts import AIExecutionResult
 from app.ai.provider_capabilities import ProviderCapabilities
 from app.ai.schemas import (
     ATSOptimizationRequest,
-    ATSOptimizationResult,
     CoverLetterGenerationRequest,
     ResumeGenerationRequest,
 )
@@ -71,7 +70,7 @@ class AIProvider(ABC):
     def generate_ats_optimization(
         self,
         request: ATSOptimizationRequest,
-    ) -> AIExecutionResult[ATSOptimizationResult]:
+    ) -> AIExecutionResult[str]:
         """
         Generate an ATS-optimized version of a resume.
 

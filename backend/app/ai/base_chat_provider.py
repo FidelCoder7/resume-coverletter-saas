@@ -34,6 +34,7 @@ class BaseChatProvider(ABC):
         Execute the provider-specific completion request.
         """
 
+    @property
     @abstractmethod
     def provider_name(
         self,
@@ -42,6 +43,7 @@ class BaseChatProvider(ABC):
         Return the provider identifier.
         """
 
+    @property
     @abstractmethod
     def model_name(
         self,
@@ -59,22 +61,51 @@ class BaseChatProvider(ABC):
     ) -> AIExecutionResult[str]:
         """
         Execute a chat completion request.
+
+        Successful executions return both generated content and
+        execution metadata.
+
+        Failed executions raise an AI exception carrying the
+        metadata available at the time of failure.
         """
 
-        try:
-            start = perf_counter()
+        start = perf_counter()
 
+        def build_metadata(
+            *,
+            prompt_tokens: int | None = None,
+            completion_tokens: int | None = None,
+            total_tokens: int | None = None,
+        ) -> AIExecutionMetadata:
+            return AIExecutionMetadata(
+                provider=self.provider_name,
+                model=self.model_name,
+                prompt_version=prompt_version,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=total_tokens,
+                latency_ms=int(
+                    (perf_counter() - start) * 1000,
+                ),
+            )
+
+        try:
             response = self.create_completion(
                 messages=messages,
             )
 
-            latency_ms = int(
-                (perf_counter() - start) * 1000,
+            usage = response.usage
+
+            metadata = build_metadata(
+                prompt_tokens=(usage.prompt_tokens if usage else None),
+                completion_tokens=(usage.completion_tokens if usage else None),
+                total_tokens=(usage.total_tokens if usage else None),
             )
 
             if not response.choices:
                 raise AIGenerationError(
                     "The AI provider returned no choices.",
+                    metadata=metadata,
                 )
 
             choice = response.choices[0]
@@ -82,6 +113,7 @@ class BaseChatProvider(ABC):
             if choice.finish_reason == "length":
                 raise AIGenerationError(
                     "The AI response exceeded the configured token limit.",
+                    metadata=metadata,
                 )
 
             message = choice.message
@@ -89,6 +121,7 @@ class BaseChatProvider(ABC):
             if message is None or message.content is None:
                 raise AIGenerationError(
                     "The AI provider returned an empty response.",
+                    metadata=metadata,
                 )
 
             content = message.content.strip()
@@ -96,34 +129,28 @@ class BaseChatProvider(ABC):
             if not content:
                 raise AIGenerationError(
                     "The AI provider returned an empty response.",
+                    metadata=metadata,
                 )
-
-            usage = response.usage
 
             return AIExecutionResult(
                 content=content,
-                metadata=AIExecutionMetadata(
-                    provider=self.provider_name(),
-                    model=self.model_name(),
-                    prompt_version=prompt_version,
-                    prompt_tokens=usage.prompt_tokens if usage else None,
-                    completion_tokens=usage.completion_tokens if usage else None,
-                    total_tokens=usage.total_tokens if usage else None,
-                    latency_ms=latency_ms,
-                ),
+                metadata=metadata,
             )
 
         except APITimeoutError as exc:
             raise AITimeoutError(
                 "The AI request timed out.",
+                metadata=build_metadata(),
             ) from exc
 
         except RateLimitError as exc:
             raise AIRateLimitError(
                 "The AI provider rate limit has been exceeded.",
+                metadata=build_metadata(),
             ) from exc
 
         except OpenAIError as exc:
             raise AIProviderError(
                 error_message,
+                metadata=build_metadata(),
             ) from exc

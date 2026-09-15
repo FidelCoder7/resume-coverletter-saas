@@ -191,8 +191,6 @@ class AIUsageRepository:
 
         return self.db.scalar(statement) or 0
 
-
-
     def count_by_user_and_period(
         self,
         *,
@@ -204,13 +202,16 @@ class AIUsageRepository:
         Count all AI usage requests for a user within a period.
         """
 
-        return self.db.scalar(
-            select(func.count(AIUsage.id)).where(
-                AIUsage.user_id == user_id,
-                AIUsage.created_at >= start_date,
-                AIUsage.created_at < end_date,
+        return (
+            self.db.scalar(
+                select(func.count(AIUsage.id)).where(
+                    AIUsage.user_id == user_id,
+                    AIUsage.created_at >= start_date,
+                    AIUsage.created_at < end_date,
+                )
             )
-        ) or 0
+            or 0
+        )
 
     def sum_tokens_by_user_and_period(
         self,

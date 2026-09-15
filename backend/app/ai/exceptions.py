@@ -1,9 +1,19 @@
+from app.ai.contracts import AIExecutionMetadata
+
+
 class AIError(Exception):
     """
     Base exception for all AI-related errors.
     """
 
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        metadata: AIExecutionMetadata | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.metadata = metadata
 
 
 class AIConfigurationError(AIError):
@@ -50,7 +60,8 @@ class AIResponseError(AIProviderError):
 
 class AIGenerationError(AIProviderError):
     """
-    Raised when a cover letter cannot be generated successfully.
+    Raised when an AI generation request cannot be completed
+    successfully.
     """
 
     pass
