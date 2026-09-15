@@ -47,7 +47,7 @@ def test_ats_optimization_creates_ai_usage_record(
 
     ai_service = MagicMock(spec=AIService)
 
-    ai_service.generate_ats_optimization.return_value = AIExecutionResult(
+    ai_service.execute_ats_optimization.return_value = AIExecutionResult(
         content="Optimized Python FastAPI SQLAlchemy Docker Kubernetes Resume",
         metadata=metadata,
     )

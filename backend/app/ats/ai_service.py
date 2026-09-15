@@ -35,7 +35,7 @@ class ATSAIService:
             target_job_title=target_job_title,
         )
 
-        result = self.ai_service.generate_ats_optimization(
+        result = self.ai_service.execute_ats_optimization(
             request,
             user_id=user_id,
             resume_id=resume_id,

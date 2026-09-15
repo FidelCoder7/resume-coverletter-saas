@@ -139,13 +139,16 @@ class ResumeAIService:
             )
 
         except Exception as exc:
-            self.ai_usage_service.record_failure(
-                user_id=user.id,
-                resume_id=resume.id,
-                feature=AIFeature.RESUME_GENERATION,
-                metadata=self.ai_service.provider.execution_metadata(),
-                error_message=str(exc),
-            )
+            metadata = getattr(exc, "metadata", None)
+
+            if metadata is not None:
+                self.ai_usage_service.record_failure(
+                    user_id=user.id,
+                    resume_id=resume.id,
+                    feature=AIFeature.RESUME_GENERATION,
+                    metadata=metadata,
+                    error_message=str(exc),
+                )
 
             raise
 

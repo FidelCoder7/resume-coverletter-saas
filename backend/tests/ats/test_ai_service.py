@@ -54,7 +54,7 @@ def test_optimize_success(
         estimated_cost=0.00015,
     )
 
-    ai_service.generate_ats_optimization.return_value = AIExecutionResult(
+    ai_service.execute_ats_optimization.return_value = AIExecutionResult(
         content="Optimized Resume",
         metadata=metadata,
     )
@@ -80,7 +80,7 @@ def test_optimize_success(
         target_job_title="Backend Engineer",
     )
 
-    ai_service.generate_ats_optimization.assert_called_once()
+    ai_service.execute_ats_optimization.assert_called_once()
 
     score_mock.assert_called_once()
 
@@ -112,7 +112,7 @@ def test_optimize_propagates_generation_error(
     ai_service,
     ai_usage_service,
 ):
-    ai_service.generate_ats_optimization.side_effect = Exception(
+    ai_service.execute_ats_optimization.side_effect = Exception(
         "OpenAI failure",
     )
 
@@ -147,7 +147,7 @@ def test_optimize_returns_score_values(
         estimated_cost=0.00001,
     )
 
-    ai_service.generate_ats_optimization.return_value = AIExecutionResult(
+    ai_service.execute_ats_optimization.return_value = AIExecutionResult(
         content="Optimized Resume",
         metadata=metadata,
     )
@@ -210,7 +210,7 @@ def test_optimize_passes_metadata_to_usage_service(
         estimated_cost=0.001,
     )
 
-    ai_service.generate_ats_optimization.return_value = AIExecutionResult(
+    ai_service.execute_ats_optimization.return_value = AIExecutionResult(
         content="Optimized Resume",
         metadata=metadata,
     )

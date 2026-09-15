@@ -25,6 +25,7 @@ def get_ai_service() -> AIService:
 
     return AIService(
         provider=provider,
+        config=ai_settings,
         retry_service=retry_service,
     )
 
