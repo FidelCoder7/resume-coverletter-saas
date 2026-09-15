@@ -47,7 +47,30 @@ export const API_ENDPOINTS = {
       `/api/certifications/${certificationId}`,
   },
 
-  AI: '/ai',
+  COVER_LETTERS: {
+    BY_RESUME: (resumeId: string) => `/api/cover-letters/resume/${resumeId}`,
+    GENERATE: (resumeId: string) =>
+      `/api/cover-letters/resume/${resumeId}/generate`,
+    BY_ID: (coverLetterId: string) => `/api/cover-letters/${coverLetterId}`,
+    REGENERATE: (coverLetterId: string) =>
+      `/api/cover-letters/${coverLetterId}/regenerate`,
+  },
+
+  ATS: {
+    OPTIMIZE: (resumeId: string) => `/api/ats/optimize/${resumeId}`,
+  },
+
+  AI_USAGE: {
+    BASE: '/api/ai-usage',
+    BY_ID: (usageId: string) => `/api/ai-usage/${usageId}`,
+    BY_RESUME: (resumeId: string) => `/api/ai-usage/resume/${resumeId}`,
+    BY_COVER_LETTER: (coverLetterId: string) =>
+      `/api/ai-usage/cover-letter/${coverLetterId}`,
+    SUMMARY: '/api/ai-usage/summary',
+    FEATURES: '/api/ai-usage/features',
+    DASHBOARD: '/api/ai-usage/dashboard',
+  },
+
   SUBSCRIPTIONS: '/subscriptions',
   BILLING: '/billing',
   ADMIN: '/admin',

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import ProtectedRoute from '@/features/auth/components/ProtectedRoute'
 import AppLayout from '@/layouts/AppLayout'
@@ -12,6 +12,11 @@ import NotFound from '@/pages/NotFound'
 import Register from '@/pages/auth/Register'
 import ResetPassword from '@/pages/auth/ResetPassword'
 import VerifyEmail from '@/pages/auth/VerifyEmail'
+import AIWorkspace from '@/pages/ai/AIWorkspace'
+import ATSOptimizer from '@/pages/ai/ATSOptimizer'
+import AIUsageDashboard from '@/pages/ai/AIUsageDashboard'
+import CoverLetterGenerator from '@/pages/ai/CoverLetterGenerator'
+import ResumeGenerator from '@/pages/ai/ResumeGenerator'
 import CreateResume from '@/pages/resumes/CreateResume'
 import EditResume from '@/pages/resumes/EditResume'
 import ResumeDashboard from '@/pages/resumes/ResumeDashboard'
@@ -89,7 +94,6 @@ export const router = createBrowserRouter([
         },
         element: <ExperienceManagement />,
       },
-
       {
         path: 'resumes/:resumeId/education',
         handle: {
@@ -139,42 +143,52 @@ export const router = createBrowserRouter([
         },
         element: <EditResume />,
       },
-      {
-        path: 'cover-letters',
-        handle: {
-          title: 'Cover Letters',
-        },
-        element: (
-          <ComingSoon
-            title="Cover Letters"
-            description="Create and manage your AI-generated cover letters here."
-          />
-        ),
-      },
+
       {
         path: 'ai',
         handle: {
-          title: 'AI Tools',
+          title: 'AI Workspace',
         },
-        element: (
-          <ComingSoon
-            title="AI Tools"
-            description="AI-powered resume and cover letter tools are coming soon."
-          />
-        ),
+        element: <AIWorkspace />,
       },
       {
-        path: 'ats',
+        path: 'ai/resume',
+        handle: {
+          title: 'AI Resume Generation',
+        },
+        element: <ResumeGenerator />,
+      },
+      {
+        path: 'ai/cover-letter',
+        handle: {
+          title: 'AI Cover Letter',
+        },
+        element: <CoverLetterGenerator />,
+      },
+      {
+        path: 'ai/ats',
         handle: {
           title: 'ATS Optimization',
         },
-        element: (
-          <ComingSoon
-            title="ATS Optimization"
-            description="Optimize your resume for applicant tracking systems here."
-          />
-        ),
+        element: <ATSOptimizer />,
       },
+      {
+        path: 'ai/usage',
+        handle: {
+          title: 'AI Usage History',
+        },
+        element: <AIUsageDashboard />,
+      },
+
+      {
+        path: 'cover-letters',
+        element: <Navigate to="/ai/cover-letter" replace />,
+      },
+      {
+        path: 'ats',
+        element: <Navigate to="/ai/ats" replace />,
+      },
+
       {
         path: 'billing',
         handle: {
