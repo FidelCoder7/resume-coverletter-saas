@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Settings,
   Sparkles,
-  Target,
   X,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
@@ -26,19 +25,9 @@ const navigationItems = [
     icon: FileText,
   },
   {
-    label: 'Cover Letters',
-    to: '/cover-letters',
-    icon: FileText,
-  },
-  {
     label: 'AI Tools',
     to: '/ai',
     icon: Bot,
-  },
-  {
-    label: 'ATS Optimization',
-    to: '/ats',
-    icon: Target,
   },
   {
     label: 'Billing',
