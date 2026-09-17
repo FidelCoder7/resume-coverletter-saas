@@ -218,3 +218,16 @@ export type UpdateCertificationRequest = CreateCertificationRequest
 export interface CertificationListResponse {
   certifications: Certification[]
 }
+
+export type ResumeVersionSource = 'user' | 'ai' | 'ats' | 'restore' | 'import'
+
+export interface ResumeVersion {
+  id: string
+  resume_id: string
+  version_number: number
+  snapshot: Record<string, unknown>
+  change_summary: string | null
+  source: ResumeVersionSource
+  created_at: string
+  updated_at: string
+}

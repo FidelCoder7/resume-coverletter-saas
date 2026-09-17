@@ -64,6 +64,7 @@ app.add_middleware(
         "OPTIONS",
     ],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 if settings.APP_ENV.value == "production":
