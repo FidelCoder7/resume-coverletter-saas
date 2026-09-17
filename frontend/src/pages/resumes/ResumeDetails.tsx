@@ -28,6 +28,9 @@ import { useSkills } from '@/features/resumes/hooks/use_skills'
 import { useProjects } from '@/features/resumes/hooks/use_projects'
 import { useCertifications } from '@/features/resumes/hooks/use_certifications'
 
+import VersionHistory from '@/features/resumes/components/VersionHistory'
+import ResumeExportActions from '@/features/resumes/components/ResumeExportActions'
+
 import { getApiErrorMessage } from '@/utils/api_error'
 
 function ResumeDetails() {
@@ -514,6 +517,10 @@ function ResumeDetails() {
           </CardContent>
         </Card>
       )}
+
+      <VersionHistory resumeId={resume.id} />
+
+      <ResumeExportActions resumeId={resume.id} />
 
       <Card>
         <CardHeader>

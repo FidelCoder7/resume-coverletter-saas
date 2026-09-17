@@ -19,6 +19,17 @@ export const API_ENDPOINTS = {
     IMPORT: '/api/resumes/import',
     BY_ID: (resumeId: string) => `/api/resumes/${resumeId}`,
     GENERATE: (resumeId: string) => `/api/resumes/${resumeId}/generate`,
+
+    VERSIONS: (resumeId: string) => `/api/resumes/${resumeId}/versions`,
+    LATEST_VERSION: (resumeId: string) =>
+      `/api/resumes/${resumeId}/versions/latest`,
+    VERSION_BY_ID: (resumeId: string, versionId: string) =>
+      `/api/resumes/${resumeId}/versions/${versionId}`,
+    RESTORE_VERSION: (resumeId: string, versionId: string) =>
+      `/api/resumes/${resumeId}/versions/${versionId}/restore`,
+
+    EXPORT_PDF: (resumeId: string) => `/api/resumes/${resumeId}/export/pdf`,
+    EXPORT_DOCX: (resumeId: string) => `/api/resumes/${resumeId}/export/docx`,
   },
 
   EXPERIENCES: {
