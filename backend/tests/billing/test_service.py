@@ -5,6 +5,7 @@ from uuid import uuid4
 import pytest
 
 from app.billing.exceptions import (
+    InvalidPaymentCallback,
     InvalidPaymentTransactionState,
     PaymentTransactionAlreadyCompleted,
     PaymentTransactionNotFound,
@@ -1226,6 +1227,106 @@ def test_process_payment_callback_duplicate_callback_is_idempotent(
     provider.get_payment_status.assert_not_called()
 
 
+
+def test_process_payment_callback_does_not_modify_terminal_transaction(
+    db_session,
+):
+    user = create_user(db_session)
+
+    provider = Mock(spec=PaymentProviderClient)
+
+    service = create_service(
+        db_session,
+        provider=provider,
+    )
+
+    transaction = initiate_transaction(
+        service,
+        user_id=user.id,
+        provider_order_id="ORDER-001",
+    )
+
+    service.complete_payment(
+        transaction_id=transaction.id,
+        provider_transaction_id="TRACKING-001",
+        provider_response={
+            "status": "COMPLETED",
+            "confirmation_code": "CONFIRMATION-001",
+        },
+    )
+
+    provider.provider_type = PaymentProvider.PESAPAL
+
+    provider.normalize_callback.return_value = PaymentCallbackResult(
+        provider_order_id="ORDER-001",
+        provider_transaction_id="TRACKING-999",
+        status=PaymentStatus.FAILED,
+        provider_response={
+            "status": "FAILED",
+            "confirmation_code": "CONFIRMATION-999",
+        },
+    )
+
+    result = service.process_payment_callback(
+        provider=provider,
+        payload={},
+    )
+
+    assert result.status == PaymentStatus.COMPLETED
+    assert result.provider_transaction_id == "TRACKING-001"
+    assert result.provider_response == {
+        "status": "COMPLETED",
+        "confirmation_code": "CONFIRMATION-001",
+    }
+
+    provider.get_payment_status.assert_not_called()
+
+
+def test_process_payment_callback_rejects_tracking_id_mismatch(
+    db_session,
+):
+    user = create_user(db_session)
+
+    provider = Mock(spec=PaymentProviderClient)
+
+    service = create_service(
+        db_session,
+        provider=provider,
+    )
+
+    transaction = initiate_transaction(
+        service,
+        user_id=user.id,
+        provider_order_id="ORDER-001",
+    )
+
+    transaction.provider_transaction_id = "TRACKING-001"
+    transaction = service.repository.update(
+        transaction,
+    )
+
+    provider.provider_type = PaymentProvider.PESAPAL
+
+    provider.normalize_callback.return_value = PaymentCallbackResult(
+        provider_order_id="ORDER-001",
+        provider_transaction_id="TRACKING-999",
+        status=PaymentStatus.COMPLETED,
+        provider_response={},
+    )
+
+    with pytest.raises(
+        InvalidPaymentCallback,
+        match="does not match",
+    ):
+        service.process_payment_callback(
+            provider=provider,
+            payload={},
+        )
+
+    provider.get_payment_status.assert_not_called()
+
+
+
 def test_process_payment_callback_prefers_status_api_over_callback(
     db_session,
 ):
@@ -1267,3 +1368,67 @@ def test_process_payment_callback_prefers_status_api_over_callback(
     )
 
     assert result.status == PaymentStatus.FAILED
+
+
+def test_synchronize_payment_status_returns_terminal_transaction_without_provider_call(
+    db_session,
+):
+    user = create_user(db_session)
+
+    provider = Mock(spec=PaymentProviderClient)
+
+    service = create_service(
+        db_session,
+        provider=provider,
+    )
+
+    transaction = initiate_transaction(
+        service,
+        user_id=user.id,
+        provider_order_id="ORDER-001",
+    )
+
+    service.fail_payment(
+        transaction_id=transaction.id,
+        failure_reason="Payment declined",
+    )
+
+    result = service.synchronize_payment_status(
+        transaction_id=transaction.id,
+    )
+
+    assert result.status == PaymentStatus.FAILED
+
+    provider.get_payment_status.assert_not_called()
+
+
+def test_synchronize_completed_payment_returns_without_provider_call(
+    db_session,
+):
+    user = create_user(db_session)
+
+    provider = Mock(spec=PaymentProviderClient)
+
+    service = create_service(
+        db_session,
+        provider=provider,
+    )
+
+    transaction = initiate_transaction(
+        service,
+        user_id=user.id,
+        provider_order_id="ORDER-001",
+    )
+
+    service.complete_payment(
+        transaction_id=transaction.id,
+        provider_transaction_id="TRACKING-001",
+    )
+
+    result = service.synchronize_payment_status(
+        transaction_id=transaction.id,
+    )
+
+    assert result.status == PaymentStatus.COMPLETED
+
+    provider.get_payment_status.assert_not_called()

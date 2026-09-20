@@ -177,6 +177,9 @@ class PaymentTransactionService:
             transaction_id,
         )
 
+        if transaction.status != PaymentStatus.PENDING:
+            return transaction
+
         if transaction.provider_transaction_id is None:
             raise InvalidPaymentCallback(
                 "Payment transaction does not have a provider transaction ID.",
@@ -221,17 +224,6 @@ class PaymentTransactionService:
         provider: PaymentProvider,
         payload: dict,
     ) -> PaymentTransaction:
-        """
-        Process an asynchronous payment provider callback.
-
-        The callback is used to correlate the provider notification
-        with the local transaction and persist the provider tracking ID.
-
-        The provider's Status API remains authoritative for the final
-        payment state. Therefore, the callback payload itself does not
-        directly complete or fail the transaction.
-        """
-
         callback = provider.normalize_callback(
             payload,
         )
@@ -241,17 +233,36 @@ class PaymentTransactionService:
             provider_order_id=callback.provider_order_id,
         )
 
+        # Terminal transactions are immutable. Duplicate callbacks must
+        # not modify persisted provider metadata or trigger another
+        # provider status request.
+        if transaction.status != PaymentStatus.PENDING:
+            return transaction
+
+        # Once a provider transaction ID has been established, it must
+        # remain bound to this application transaction. A different ID
+        # indicates an inconsistent or potentially invalid callback.
+        if (
+            transaction.provider_transaction_id is not None
+            and callback.provider_transaction_id is not None
+            and transaction.provider_transaction_id
+            != callback.provider_transaction_id
+        ):
+            raise InvalidPaymentCallback(
+                "PesaPal callback transaction ID does not match "
+                "the transaction's existing provider transaction ID.",
+            )
+
         if callback.provider_transaction_id is not None:
-            transaction.provider_transaction_id = callback.provider_transaction_id
+            transaction.provider_transaction_id = (
+                callback.provider_transaction_id
+            )
 
         transaction.provider_response = callback.provider_response
 
         transaction = self.repository.update(
             transaction,
         )
-
-        if transaction.status != PaymentStatus.PENDING:
-            return transaction
 
         if transaction.provider_transaction_id is None:
             return transaction

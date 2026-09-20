@@ -55,8 +55,8 @@ def test_initiate_payment_submits_expected_pesapal_payload(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "app.billing.providers.pesapal.provider.settings.PESAPAL_IPN_URL",
-        "https://example.com/ipn",
+        "app.billing.providers.pesapal.provider.settings.PESAPAL_IPN_ID",
+        "IPN-ID-001",
     )
 
     client.submit_order.return_value = {
@@ -75,7 +75,7 @@ def test_initiate_payment_submits_expected_pesapal_payload(
             "amount": 1500.0,
             "description": "Pro subscription",
             "callback_url": "https://example.com/callback",
-            "notification_id": "https://example.com/ipn",
+            "notification_id": "IPN-ID-001",
             "billing_address": {
                 "email_address": "user@example.com",
                 "first_name": "Test User",
