@@ -99,5 +99,22 @@ export const API_ENDPOINTS = {
       `/api/billing/transactions/${transactionId}/status`,
   },
 
-  ADMIN: '/admin',
+  ADMIN: {
+    BASE: '/api/admin',
+    ACCESS: '/api/admin/access',
+    USERS: '/api/admin/users',
+    USER_BY_ID: (userId: string) => `/api/admin/users/${userId}`,
+    SUSPEND_USER: (userId: string) => `/api/admin/users/${userId}/suspend`,
+    REACTIVATE_USER: (userId: string) =>
+      `/api/admin/users/${userId}/reactivate`,
+    AUDIT_LOGS: '/api/admin/audit-logs',
+    AUDIT_LOG_BY_ID: (auditLogId: string) =>
+      `/api/admin/audit-logs/${auditLogId}`,
+    USER_AUDIT_LOGS: (userId: string) =>
+      `/api/admin/users/${userId}/audit-logs`,
+    ADMIN_AUDIT_LOGS: (adminId: string) =>
+      `/api/admin/admins/${adminId}/audit-logs`,
+    METRICS: '/api/admin/metrics',
+    METRICS_TIMESERIES: '/api/admin/metrics/timeseries',
+  } as const,
 } as const
