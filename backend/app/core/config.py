@@ -124,7 +124,13 @@ class Settings(BaseSettings):
         "https://cybqa.pesapal.com/pesapalv3/api/Transactions/GetTransactionStatus"
     )
 
+    PESAPAL_IPN_REGISTRATION_URL: str = (
+        "https://cybqa.pesapal.com/pesapalv3/api/URLSetup/RegisterIPN"
+    )
+
     PESAPAL_IPN_URL: str
+
+    PESAPAL_IPN_ID: str
 
     PESAPAL_CALLBACK_URL: str
 

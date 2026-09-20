@@ -82,7 +82,22 @@ export const API_ENDPOINTS = {
     DASHBOARD: '/api/ai-usage/dashboard',
   },
 
-  SUBSCRIPTIONS: '/subscriptions',
-  BILLING: '/billing',
+  SUBSCRIPTIONS: {
+    BASE: '/api/subscriptions',
+    LIMITS: '/api/subscriptions/limits',
+    USAGE: '/api/subscriptions/usage',
+  },
+
+  BILLING: {
+    BASE: '/api/billing',
+    PAYMENTS: '/api/billing/payments',
+    CALLBACK: '/api/billing/payments/callback',
+    TRANSACTIONS: '/api/billing/transactions',
+    TRANSACTION_BY_ID: (transactionId: string) =>
+      `/api/billing/transactions/${transactionId}`,
+    TRANSACTION_STATUS: (transactionId: string) =>
+      `/api/billing/transactions/${transactionId}/status`,
+  },
+
   ADMIN: '/admin',
 } as const

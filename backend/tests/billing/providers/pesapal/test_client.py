@@ -23,6 +23,7 @@ def client():
         oauth_url="https://example.com/oauth",
         order_submission_url="https://example.com/orders",
         order_status_url="https://example.com/status",
+        ipn_registration_url="https://example.com/register-ipn",
     )
 
 
@@ -233,6 +234,282 @@ def test_authenticate_raises_response_error_when_token_is_invalid(
             match="valid access token",
         ):
             client.authenticate()
+
+
+ # ------------------------------------------------------------------
+# IPN Registration
+# ------------------------------------------------------------------
+
+
+def test_register_ipn_returns_provider_response(
+    client,
+):
+    client._access_token = "access-token"
+
+    response_data = {
+        "url": "https://example.com/ipn",
+        "ipn_id": "84740ab4-3cd9-47da-8a4f-dd1db53494b5",
+        "ipn_notification_type_description": "GET",
+        "ipn_status": 1,
+        "status": "200",
+    }
+
+    response = make_response(
+        json_data=response_data,
+    )
+
+    with patch(
+        "app.billing.providers.pesapal.client.requests.post",
+        return_value=response,
+    ) as mock_post:
+        result = client.register_ipn(
+            url="https://example.com/ipn",
+            notification_type="GET",
+        )
+
+    assert result == response_data
+
+    mock_post.assert_called_once_with(
+        "https://example.com/register-ipn",
+        json={
+            "url": "https://example.com/ipn",
+            "ipn_notification_type": "GET",
+        },
+        headers={
+            "Authorization": "Bearer access-token",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        timeout=10,
+    )
+
+
+def test_register_ipn_normalizes_notification_type(
+    client,
+):
+    client._access_token = "access-token"
+
+    response = make_response(
+        json_data={
+            "ipn_id": "IPN-ID-001",
+        },
+    )
+
+    with patch(
+        "app.billing.providers.pesapal.client.requests.post",
+        return_value=response,
+    ) as mock_post:
+        client.register_ipn(
+            url="https://example.com/ipn",
+            notification_type="get",
+        )
+
+    mock_post.assert_called_once_with(
+        "https://example.com/register-ipn",
+        json={
+            "url": "https://example.com/ipn",
+            "ipn_notification_type": "GET",
+        },
+        headers={
+            "Authorization": "Bearer access-token",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        timeout=10,
+    )
+
+
+@pytest.mark.parametrize(
+    "notification_type",
+    [
+        "",
+        "PUT",
+        "PATCH",
+        "DELETE",
+    ],
+)
+def test_register_ipn_raises_configuration_error_for_invalid_notification_type(
+    client,
+    notification_type,
+):
+    with pytest.raises(
+        PaymentProviderConfigurationError,
+        match="GET or POST",
+    ):
+        client.register_ipn(
+            url="https://example.com/ipn",
+            notification_type=notification_type,
+        )
+
+
+def test_register_ipn_raises_configuration_error_when_url_is_missing(
+    client,
+):
+    with pytest.raises(
+        PaymentProviderConfigurationError,
+        match="IPN URL is not configured",
+    ):
+        client.register_ipn(
+            url="",
+            notification_type="GET",
+        )
+
+
+@pytest.mark.parametrize(
+    "status_code",
+    [401, 403],
+)
+def test_register_ipn_raises_authentication_error_and_clears_token(
+    client,
+    status_code,
+):
+    client._access_token = "expired-token"
+
+    response = make_response(
+        status_code=status_code,
+        json_data={
+            "error": "unauthorized",
+        },
+    )
+
+    with patch(
+        "app.billing.providers.pesapal.client.requests.post",
+        return_value=response,
+    ):
+        with pytest.raises(
+            PaymentProviderAuthenticationError,
+        ):
+            client.register_ipn(
+                url="https://example.com/ipn",
+                notification_type="GET",
+            )
+
+    assert client._access_token is None
+
+
+@pytest.mark.parametrize(
+    "status_code",
+    [400, 422],
+)
+def test_register_ipn_raises_request_error_for_invalid_request(
+    client,
+    status_code,
+):
+    client._access_token = "access-token"
+
+    response = make_response(
+        status_code=status_code,
+        json_data={
+            "error": "invalid request",
+        },
+    )
+
+    with patch(
+        "app.billing.providers.pesapal.client.requests.post",
+        return_value=response,
+    ):
+        with pytest.raises(
+            PaymentProviderRequestError,
+        ):
+            client.register_ipn(
+                url="https://example.com/ipn",
+                notification_type="GET",
+            )
+
+
+def test_register_ipn_raises_operation_error_for_provider_failure(
+    client,
+):
+    client._access_token = "access-token"
+
+    response = make_response(
+        status_code=500,
+        json_data={
+            "error": "internal server error",
+        },
+    )
+
+    with patch(
+        "app.billing.providers.pesapal.client.requests.post",
+        return_value=response,
+    ):
+        with pytest.raises(
+            PaymentProviderOperationError,
+            match="HTTP status: 500",
+        ):
+            client.register_ipn(
+                url="https://example.com/ipn",
+                notification_type="GET",
+            )
+
+
+def test_register_ipn_raises_communication_error_on_request_failure(
+    client,
+):
+    client._access_token = "access-token"
+
+    with patch(
+        "app.billing.providers.pesapal.client.requests.post",
+        side_effect=requests.RequestException(
+            "connection failed",
+        ),
+    ):
+        with pytest.raises(
+            PaymentProviderCommunicationError,
+        ):
+            client.register_ipn(
+                url="https://example.com/ipn",
+                notification_type="GET",
+            )
+
+
+def test_register_ipn_raises_response_error_when_ipn_id_is_missing(
+    client,
+):
+    client._access_token = "access-token"
+
+    response = make_response(
+        json_data={
+            "url": "https://example.com/ipn",
+            "status": "200",
+        },
+    )
+
+    with patch(
+        "app.billing.providers.pesapal.client.requests.post",
+        return_value=response,
+    ):
+        with pytest.raises(
+            PaymentProviderResponseError,
+            match="valid IPN ID",
+        ):
+            client.register_ipn(
+                url="https://example.com/ipn",
+                notification_type="GET",
+            )
+
+
+def test_register_ipn_raises_response_error_for_invalid_json(
+    client,
+):
+    client._access_token = "access-token"
+
+    response = make_response(
+        json_data=ValueError("invalid json"),
+    )
+
+    with patch(
+        "app.billing.providers.pesapal.client.requests.post",
+        return_value=response,
+    ):
+        with pytest.raises(
+            PaymentProviderResponseError,
+            match="IPN registration",
+        ):
+            client.register_ipn(
+                url="https://example.com/ipn",
+                notification_type="GET",
+            )
 
 
 # ------------------------------------------------------------------

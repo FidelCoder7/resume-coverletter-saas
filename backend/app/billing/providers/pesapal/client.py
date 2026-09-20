@@ -30,6 +30,7 @@ class PesaPalClient:
         oauth_url: str | None = None,
         order_submission_url: str | None = None,
         order_status_url: str | None = None,
+        ipn_registration_url: str | None = None,
     ) -> None:
         self.consumer_key = (
             consumer_key if consumer_key is not None else settings.PESAPAL_CONSUMER_KEY
@@ -42,6 +43,7 @@ class PesaPalClient:
         )
 
         self.timeout = timeout if timeout is not None else settings.PESAPAL_TIMEOUT
+
         self.oauth_url = (
             oauth_url if oauth_url is not None else settings.PESAPAL_OAUTH_URL
         )
@@ -56,6 +58,12 @@ class PesaPalClient:
             order_status_url
             if order_status_url is not None
             else settings.PESAPAL_ORDER_STATUS_URL
+        )
+
+        self.ipn_registration_url = (
+            ipn_registration_url
+            if ipn_registration_url is not None
+            else settings.PESAPAL_IPN_REGISTRATION_URL
         )
 
         self._access_token: str | None = None
@@ -141,6 +149,121 @@ class PesaPalClient:
             return self._access_token
 
         return self.authenticate()
+
+    def register_ipn(
+        self,
+        *,
+        url: str,
+        notification_type: str,
+    ) -> dict[str, Any]:
+        """
+        Register an IPN URL with PesaPal.
+
+        Args:
+            url:
+                Publicly reachable URL that PesaPal will notify.
+
+            notification_type:
+                HTTP method PesaPal will use for IPN notifications.
+                PesaPal supports GET and POST.
+
+        Returns:
+            The PesaPal IPN registration response.
+
+        Raises:
+            PaymentProviderConfigurationError:
+                If the IPN URL or notification type is invalid.
+
+            PaymentProviderRequestError:
+                If PesaPal rejects the registration request.
+
+            PaymentProviderCommunicationError:
+                If communication with PesaPal fails.
+
+            PaymentProviderAuthenticationError:
+                If authentication fails.
+
+            PaymentProviderOperationError:
+                If PesaPal fails the registration operation.
+
+            PaymentProviderResponseError:
+                If the registration response is invalid.
+        """
+
+        if not url:
+            raise PaymentProviderConfigurationError(
+                "PesaPal IPN URL is not configured.",
+            )
+
+        normalized_notification_type = notification_type.upper()
+
+        if normalized_notification_type not in {"GET", "POST"}:
+            raise PaymentProviderConfigurationError(
+                "PesaPal IPN notification type must be GET or POST.",
+            )
+
+        token = self.get_access_token()
+
+        payload = {
+            "url": url,
+            "ipn_notification_type": normalized_notification_type,
+        }
+
+        try:
+            response = requests.post(
+                self.ipn_registration_url,
+                json=payload,
+                headers=self._authorization_headers(token),
+                timeout=self.timeout,
+            )
+        except requests.RequestException as exc:
+            raise PaymentProviderCommunicationError(
+                "Failed to communicate with PesaPal IPN registration API.",
+            ) from exc
+
+        if response.status_code in {401, 403}:
+            self._access_token = None
+
+            raise PaymentProviderAuthenticationError(
+                "PesaPal rejected the authentication token.",
+            )
+
+        if response.status_code in {400, 422}:
+            raise PaymentProviderRequestError(
+                "PesaPal rejected the IPN registration request.",
+            )
+
+        if not response.ok:
+            raise PaymentProviderOperationError(
+                "PesaPal failed to register the IPN URL. "
+                f"HTTP status: {response.status_code}.",
+            )
+
+        data = self._parse_json_response(
+            response,
+            operation="IPN registration",
+        )
+
+        ipn_id = data.get("ipn_id")
+
+        if not isinstance(ipn_id, str) or not ipn_id:
+            error = data.get("error")
+
+            if isinstance(error, dict):
+                error_message = error.get("message")
+
+                if error_message:
+                    raise PaymentProviderResponseError(
+                        "PesaPal IPN registration failed. "
+                        f"message={str(error_message)!r}.",
+                    )
+
+            raise PaymentProviderResponseError(
+                "PesaPal IPN registration response did not contain "
+                "a valid IPN ID.",
+            )
+
+        return data
 
     def submit_order(
         self,

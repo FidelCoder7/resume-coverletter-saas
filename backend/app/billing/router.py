@@ -74,6 +74,111 @@ def initiate_payment(
     )
 
 
+def _process_pesapal_ipn(
+    *,
+    payload: dict,
+    service: PaymentTransactionService,
+    payment_provider: PaymentProvider,
+) -> dict[str, object]:
+    """
+    Process a PesaPal IPN notification and return the acknowledgement
+    expected by PesaPal.
+
+    PesaPal does not include authoritative payment status in the IPN
+    notification. The payment transaction service correlates the
+    notification and retrieves the authoritative status from PesaPal.
+    """
+
+    service.process_payment_callback(
+        provider=payment_provider,
+        payload=payload,
+    )
+
+    return {
+        "orderNotificationType": payload.get(
+            "OrderNotificationType",
+            "IPNCHANGE",
+        ),
+        "orderTrackingId": payload.get(
+            "OrderTrackingId",
+        ),
+        "orderMerchantReference": payload.get(
+            "OrderMerchantReference",
+        ),
+        "status": 200,
+    }
+
+@router.get(
+    "/pesapal/ipn",
+    status_code=status.HTTP_200_OK,
+)
+def pesapal_ipn_get(
+    order_tracking_id: str = Query(
+        ...,
+        alias="OrderTrackingId",
+    ),
+    order_merchant_reference: str = Query(
+        ...,
+        alias="OrderMerchantReference",
+    ),
+    order_notification_type: str = Query(
+        default="IPNCHANGE",
+        alias="OrderNotificationType",
+    ),
+    service: PaymentTransactionService = Depends(
+        get_payment_transaction_service,
+    ),
+    payment_provider: PaymentProvider = Depends(
+        get_payment_provider,
+    ),
+) -> dict[str, object]:
+    """
+    Receive a PesaPal GET IPN notification.
+
+    PesaPal sends the notification fields as query parameters when
+    the IPN URL is registered with GET notification mode.
+    """
+
+    payload = {
+        "OrderTrackingId": order_tracking_id,
+        "OrderMerchantReference": order_merchant_reference,
+        "OrderNotificationType": order_notification_type,
+    }
+
+    return _process_pesapal_ipn(
+        payload=payload,
+        service=service,
+        payment_provider=payment_provider,
+    )
+
+
+@router.post(
+    "/pesapal/ipn",
+    status_code=status.HTTP_200_OK,
+)
+def pesapal_ipn_post(
+    payload: dict,
+    service: PaymentTransactionService = Depends(
+        get_payment_transaction_service,
+    ),
+    payment_provider: PaymentProvider = Depends(
+        get_payment_provider,
+    ),
+) -> dict[str, object]:
+    """
+    Receive a PesaPal POST IPN notification.
+
+    PesaPal sends the notification fields in the request body when
+    the IPN URL is registered with POST notification mode.
+    """
+
+    return _process_pesapal_ipn(
+        payload=payload,
+        service=service,
+        payment_provider=payment_provider,
+    )
+
+
 @router.post(
     "/payments/callback",
     status_code=status.HTTP_200_OK,

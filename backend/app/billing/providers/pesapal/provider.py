@@ -58,7 +58,7 @@ class PesaPalProvider(PaymentProvider):
             "amount": float(request.amount),
             "description": request.description,
             "callback_url": request.callback_url,
-            "notification_id": settings.PESAPAL_IPN_URL,
+            "notification_id": settings.PESAPAL_IPN_ID,
             "billing_address": {
                 "email_address": request.customer_email,
                 "first_name": request.customer_name,
@@ -88,9 +88,40 @@ class PesaPalProvider(PaymentProvider):
             )
 
         if not order_tracking_id:
+            error = response.get("error")
+
+            if isinstance(error, dict):
+                error_type = error.get("type")
+                error_code = error.get("code")
+                error_message = error.get("message")
+
+                raise PaymentProviderResponseError(
+                    "PesaPal order submission failed. "
+                    f"type={error_type!r}, "
+                    f"code={error_code!r}, "
+                    f"message={error_message!r}.",
+                )
+
+            if error:
+                raise PaymentProviderResponseError(
+                    "PesaPal order submission failed. "
+                    f"error={str(error)!r}.",
+                )
+
+            message = response.get("message")
+
+            if message:
+                raise PaymentProviderResponseError(
+                    "PesaPal order submission failed. "
+                    f"message={str(message)!r}.",
+                )
+
+            status = response.get("status")
+
             raise PaymentProviderResponseError(
-                "PesaPal order submission response did not contain "
-                "an order tracking ID.",
+                "PesaPal order submission did not contain "
+                "an order tracking ID. "
+                f"PesaPal status={status!r}.",
             )
 
         status = self._map_initiation_status(

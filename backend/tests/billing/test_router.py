@@ -16,6 +16,8 @@ from app.billing.router import (
     initiate_payment,
     list_payment_transactions,
     payment_callback,
+    pesapal_ipn_get,
+    pesapal_ipn_post,
     synchronize_payment_status,
 )
 from app.billing.schemas import (
@@ -690,3 +692,227 @@ def test_synchronize_payment_status_returns_404_for_other_users_transaction():
     assert exc_info.value.detail == "Payment transaction not found."
 
     service.synchronize_payment_status.assert_not_called()
+
+
+def test_pesapal_ipn_get_processes_notification():
+    """
+    A PesaPal GET IPN notification should be converted into the
+    provider payload format and delegated to the payment service.
+    """
+
+    service = Mock(
+        spec=PaymentTransactionService,
+    )
+
+    provider = Mock()
+
+    result = pesapal_ipn_get(
+        order_tracking_id="TRACKING-001",
+        order_merchant_reference="ORDER-001",
+        order_notification_type="IPNCHANGE",
+        service=service,
+        payment_provider=provider,
+    )
+
+    assert result == {
+        "orderNotificationType": "IPNCHANGE",
+        "orderTrackingId": "TRACKING-001",
+        "orderMerchantReference": "ORDER-001",
+        "status": 200,
+    }
+
+    service.process_payment_callback.assert_called_once_with(
+        provider=provider,
+        payload={
+            "OrderTrackingId": "TRACKING-001",
+            "OrderMerchantReference": "ORDER-001",
+            "OrderNotificationType": "IPNCHANGE",
+        },
+    )
+
+
+def test_pesapal_ipn_post_propagates_invalid_callback():
+    """
+    A POST IPN with an invalid merchant reference should not be
+    acknowledged as successfully processed.
+    """
+
+    service = Mock(
+        spec=PaymentTransactionService,
+    )
+
+    provider = Mock()
+
+    service.process_payment_callback.side_effect = InvalidPaymentCallback(
+        "PesaPal callback is missing OrderMerchantReference.",
+    )
+
+    with pytest.raises(
+        InvalidPaymentCallback,
+    ):
+        pesapal_ipn_post(
+            payload={
+                "OrderTrackingId": "TRACKING-001",
+                "OrderNotificationType": "IPNCHANGE",
+            },
+            service=service,
+            payment_provider=provider,
+        )
+
+    service.process_payment_callback.assert_called_once_with(
+        provider=provider,
+        payload={
+            "OrderTrackingId": "TRACKING-001",
+            "OrderNotificationType": "IPNCHANGE",
+        },
+    )
+
+def test_pesapal_ipn_post_processes_notification():
+    """
+    A PesaPal POST IPN notification should be delegated to the
+    payment service unchanged.
+    """
+
+    service = Mock(
+        spec=PaymentTransactionService,
+    )
+
+    provider = Mock()
+
+    payload = {
+        "OrderTrackingId": "TRACKING-001",
+        "OrderMerchantReference": "ORDER-001",
+        "OrderNotificationType": "IPNCHANGE",
+    }
+
+    result = pesapal_ipn_post(
+        payload=payload,
+        service=service,
+        payment_provider=provider,
+    )
+
+    assert result == {
+        "orderNotificationType": "IPNCHANGE",
+        "orderTrackingId": "TRACKING-001",
+        "orderMerchantReference": "ORDER-001",
+        "status": 200,
+    }
+
+    service.process_payment_callback.assert_called_once_with(
+        provider=provider,
+        payload=payload,
+    )
+
+
+def test_pesapal_ipn_get_propagates_payment_processing_error():
+    """
+    Payment processing errors should propagate instead of falsely
+    acknowledging the IPN as successfully processed.
+    """
+
+    service = Mock(
+        spec=PaymentTransactionService,
+    )
+
+    provider = Mock()
+
+    service.process_payment_callback.side_effect = PaymentTransactionNotFound(
+        "Unknown transaction",
+    )
+
+    with pytest.raises(
+        PaymentTransactionNotFound,
+    ):
+        pesapal_ipn_get(
+            order_tracking_id="TRACKING-001",
+            order_merchant_reference="UNKNOWN-ORDER",
+            order_notification_type="IPNCHANGE",
+            service=service,
+            payment_provider=provider,
+        )
+
+
+def test_pesapal_ipn_post_duplicate_notification_is_delegated():
+    """
+    Duplicate IPN notifications should be passed to the service.
+    Idempotency is enforced by the service layer.
+    """
+
+    service = Mock(
+        spec=PaymentTransactionService,
+    )
+
+    provider = Mock()
+
+    payload = {
+        "OrderTrackingId": "TRACKING-001",
+        "OrderMerchantReference": "ORDER-001",
+        "OrderNotificationType": "IPNCHANGE",
+    }
+
+    first_result = pesapal_ipn_post(
+        payload=payload,
+        service=service,
+        payment_provider=provider,
+    )
+
+    second_result = pesapal_ipn_post(
+        payload=payload,
+        service=service,
+        payment_provider=provider,
+    )
+
+    expected = {
+        "orderNotificationType": "IPNCHANGE",
+        "orderTrackingId": "TRACKING-001",
+        "orderMerchantReference": "ORDER-001",
+        "status": 200,
+    }
+
+    assert first_result == expected
+    assert second_result == expected
+
+    assert service.process_payment_callback.call_count == 2
+
+    service.process_payment_callback.assert_any_call(
+        provider=provider,
+        payload=payload,
+    )
+
+
+
+def test_pesapal_ipn_get_defaults_notification_type():
+    """
+    PesaPal GET IPN notifications should use IPNCHANGE when
+    the notification type is omitted at the HTTP layer.
+    """
+
+    service = Mock(
+        spec=PaymentTransactionService,
+    )
+
+    provider = Mock()
+
+    result = pesapal_ipn_get(
+        order_tracking_id="TRACKING-001",
+        order_merchant_reference="ORDER-001",
+        order_notification_type="IPNCHANGE",
+        service=service,
+        payment_provider=provider,
+    )
+
+    assert result == {
+        "orderNotificationType": "IPNCHANGE",
+        "orderTrackingId": "TRACKING-001",
+        "orderMerchantReference": "ORDER-001",
+        "status": 200,
+    }
+
+    service.process_payment_callback.assert_called_once_with(
+        provider=provider,
+        payload={
+            "OrderTrackingId": "TRACKING-001",
+            "OrderMerchantReference": "ORDER-001",
+            "OrderNotificationType": "IPNCHANGE",
+        },
+    )
