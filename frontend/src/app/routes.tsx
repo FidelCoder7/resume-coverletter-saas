@@ -27,6 +27,11 @@ import EducationManagement from '@/pages/resumes/EducationManagement'
 import SkillsManagement from '@/pages/resumes/SkillsManagement'
 import ProjectsManagement from '@/pages/resumes/ProjectsManagement'
 import CertificationsManagement from '@/pages/resumes/CertificationsManagement'
+import BillingDashboard from '@/pages/billing/BillingDashboard'
+import BillingUsageDashboard from '@/pages/billing/UsageDashboard'
+import PaymentDetails from '@/pages/billing/PaymentDetails'
+import PaymentHistory from '@/pages/billing/PaymentHistory'
+import Upgrade from '@/pages/billing/Upgrade'
 
 export const router = createBrowserRouter([
   {
@@ -194,12 +199,36 @@ export const router = createBrowserRouter([
         handle: {
           title: 'Billing',
         },
-        element: (
-          <ComingSoon
-            title="Billing"
-            description="Manage your subscription and billing information here."
-          />
-        ),
+        element: <BillingDashboard />,
+      },
+      {
+        path: 'billing/usage',
+        handle: {
+          title: 'Usage Dashboard',
+        },
+        element: <BillingUsageDashboard />,
+      },
+      {
+        path: 'billing/payments',
+        handle: {
+          title: 'Payment History',
+        },
+        element: <PaymentHistory />,
+      },
+      {
+        path: 'billing/payments/:transactionId',
+        handle: {
+          title: 'Payment Details',
+        },
+        element: <PaymentDetails />,
+      },
+
+      {
+        path: 'billing/upgrade',
+        handle: {
+          title: 'Upgrade to Pro',
+        },
+        element: <Upgrade />,
       },
       {
         path: 'profile',
