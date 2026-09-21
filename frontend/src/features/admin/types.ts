@@ -42,3 +42,78 @@ export interface AdminUserListParams {
 export interface AdminUserActionRequest {
   reason?: string
 }
+
+export interface AdminUserMetrics {
+  total_users: number
+  active_users: number
+  suspended_users: number
+  deleted_users: number
+  verified_users: number
+  unverified_users: number
+  total_admins: number
+}
+
+export interface AdminSubscriptionMetrics {
+  free_users: number
+  pro_users: number
+  active_subscriptions: number
+}
+
+export interface AdminRevenueMetrics {
+  total_transactions: number
+  completed_transactions: number
+  pending_transactions: number
+  failed_transactions: number
+  cancelled_transactions: number
+  expired_transactions: number
+  total_revenue_by_currency: Record<string, string>
+}
+
+export interface AdminAIUsageMetrics {
+  total_requests: number
+  successful_requests: number
+  failed_requests: number
+  total_tokens: number
+  estimated_cost: string
+  average_latency_ms: number | null
+}
+
+export interface AdminContentMetrics {
+  total_resumes: number
+  generated_resumes: number
+  total_cover_letters: number
+}
+
+export interface AdminPlatformActivityMetrics {
+  total_users: number
+  total_resumes: number
+  total_cover_letters: number
+  total_ai_requests: number
+  total_payment_transactions: number
+  total_audit_logs: number
+}
+
+export interface AdminDashboardMetricsResponse {
+  users: AdminUserMetrics
+  subscriptions: AdminSubscriptionMetrics
+  revenue: AdminRevenueMetrics
+  ai_usage: AdminAIUsageMetrics
+  content: AdminContentMetrics
+  platform: AdminPlatformActivityMetrics
+  total_audit_logs: number
+}
+
+export interface AdminTimeSeriesPoint {
+  date: string
+  count: number
+}
+
+export interface AdminDashboardTimeSeriesResponse {
+  days: number
+  registrations: AdminTimeSeriesPoint[]
+  audit_activity: AdminTimeSeriesPoint[]
+}
+
+export interface AdminDashboardTimeSeriesParams {
+  days?: number
+}

@@ -3,6 +3,9 @@ import { API_ENDPOINTS } from '@/api/endpoint'
 
 import type {
   AdminAccessResponse,
+  AdminDashboardMetricsResponse,
+  AdminDashboardTimeSeriesParams,
+  AdminDashboardTimeSeriesResponse,
   AdminUserActionRequest,
   AdminUserDetail,
   AdminUserListParams,
@@ -58,6 +61,27 @@ export const adminApi = {
     const response = await apiClient.post<AdminUserDetail>(
       API_ENDPOINTS.ADMIN.REACTIVATE_USER(userId),
       payload,
+    )
+
+    return response.data
+  },
+
+  getMetrics: async (): Promise<AdminDashboardMetricsResponse> => {
+    const response = await apiClient.get<AdminDashboardMetricsResponse>(
+      API_ENDPOINTS.ADMIN.METRICS,
+    )
+
+    return response.data
+  },
+
+  getMetricsTimeSeries: async (
+    params?: AdminDashboardTimeSeriesParams,
+  ): Promise<AdminDashboardTimeSeriesResponse> => {
+    const response = await apiClient.get<AdminDashboardTimeSeriesResponse>(
+      API_ENDPOINTS.ADMIN.METRICS_TIMESERIES,
+      {
+        params,
+      },
     )
 
     return response.data
