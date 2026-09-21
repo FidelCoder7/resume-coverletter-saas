@@ -43,6 +43,42 @@ export interface AdminUserActionRequest {
   reason?: string
 }
 
+export type AdminAuditAction =
+  | 'user_suspended'
+  | 'user_activated'
+  | 'user_deleted'
+  | 'user_restored'
+  | 'user_role_changed'
+  | 'user_subscription_changed'
+
+export interface AdminAuditLog {
+  id: string
+  admin_id: string
+  target_user_id: string
+  action: AdminAuditAction
+  reason: string | null
+  event_metadata: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface AdminAuditLogListResponse {
+  items: AdminAuditLog[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+export interface AdminAuditLogListParams {
+  page?: number
+  page_size?: number
+  action?: AdminAuditAction
+  admin_id?: string
+  target_user_id?: string
+  created_after?: string
+  created_before?: string
+}
+
 export interface AdminUserMetrics {
   total_users: number
   active_users: number

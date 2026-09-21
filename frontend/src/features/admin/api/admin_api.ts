@@ -10,6 +10,9 @@ import type {
   AdminUserDetail,
   AdminUserListParams,
   AdminUserListResponse,
+  AdminAuditLog,
+  AdminAuditLogListParams,
+  AdminAuditLogListResponse,
 } from '@/features/admin/types'
 
 export const adminApi = {
@@ -79,6 +82,55 @@ export const adminApi = {
   ): Promise<AdminDashboardTimeSeriesResponse> => {
     const response = await apiClient.get<AdminDashboardTimeSeriesResponse>(
       API_ENDPOINTS.ADMIN.METRICS_TIMESERIES,
+      {
+        params,
+      },
+    )
+
+    return response.data
+  },
+
+  listAuditLogs: async (
+    params?: AdminAuditLogListParams,
+  ): Promise<AdminAuditLogListResponse> => {
+    const response = await apiClient.get<AdminAuditLogListResponse>(
+      API_ENDPOINTS.ADMIN.AUDIT_LOGS,
+      {
+        params,
+      },
+    )
+
+    return response.data
+  },
+
+  getAuditLog: async (auditLogId: string): Promise<AdminAuditLog> => {
+    const response = await apiClient.get<AdminAuditLog>(
+      API_ENDPOINTS.ADMIN.AUDIT_LOG_BY_ID(auditLogId),
+    )
+
+    return response.data
+  },
+
+  listUserAuditLogs: async (
+    userId: string,
+    params?: AdminAuditLogListParams,
+  ): Promise<AdminAuditLogListResponse> => {
+    const response = await apiClient.get<AdminAuditLogListResponse>(
+      API_ENDPOINTS.ADMIN.USER_AUDIT_LOGS(userId),
+      {
+        params,
+      },
+    )
+
+    return response.data
+  },
+
+  listAdminAuditLogs: async (
+    adminId: string,
+    params?: AdminAuditLogListParams,
+  ): Promise<AdminAuditLogListResponse> => {
+    const response = await apiClient.get<AdminAuditLogListResponse>(
+      API_ENDPOINTS.ADMIN.ADMIN_AUDIT_LOGS(adminId),
       {
         params,
       },
