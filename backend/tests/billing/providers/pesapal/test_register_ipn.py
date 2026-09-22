@@ -25,12 +25,15 @@ def test_register_ipn_returns_registered_ipn_id(
         "status": "200",
     }
 
-    with patch(
-        "app.billing.providers.pesapal.register_ipn.settings.PESAPAL_IPN_URL",
-        "https://example.com/api/billing/pesapal/ipn",
-    ), patch(
-        "app.billing.providers.pesapal.register_ipn.settings.PESAPAL_IPN_NOTIFICATION_TYPE",
-        "GET",
+    with (
+        patch(
+            "app.billing.providers.pesapal.register_ipn.settings.PESAPAL_IPN_URL",
+            "https://example.com/api/billing/pesapal/ipn",
+        ),
+        patch(
+            "app.billing.providers.pesapal.register_ipn.settings.PESAPAL_IPN_NOTIFICATION_TYPE",
+            "GET",
+        ),
     ):
         result = register_ipn()
 

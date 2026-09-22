@@ -1227,7 +1227,6 @@ def test_process_payment_callback_duplicate_callback_is_idempotent(
     provider.get_payment_status.assert_not_called()
 
 
-
 def test_process_payment_callback_does_not_modify_terminal_transaction(
     db_session,
 ):
@@ -1324,7 +1323,6 @@ def test_process_payment_callback_rejects_tracking_id_mismatch(
         )
 
     provider.get_payment_status.assert_not_called()
-
 
 
 def test_process_payment_callback_prefers_status_api_over_callback(

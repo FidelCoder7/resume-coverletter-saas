@@ -245,8 +245,7 @@ class PaymentTransactionService:
         if (
             transaction.provider_transaction_id is not None
             and callback.provider_transaction_id is not None
-            and transaction.provider_transaction_id
-            != callback.provider_transaction_id
+            and transaction.provider_transaction_id != callback.provider_transaction_id
         ):
             raise InvalidPaymentCallback(
                 "PesaPal callback transaction ID does not match "
@@ -254,9 +253,7 @@ class PaymentTransactionService:
             )
 
         if callback.provider_transaction_id is not None:
-            transaction.provider_transaction_id = (
-                callback.provider_transaction_id
-            )
+            transaction.provider_transaction_id = callback.provider_transaction_id
 
         transaction.provider_response = callback.provider_response
 

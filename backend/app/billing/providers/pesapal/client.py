@@ -259,8 +259,7 @@ class PesaPalClient:
                     )
 
             raise PaymentProviderResponseError(
-                "PesaPal IPN registration response did not contain "
-                "a valid IPN ID.",
+                "PesaPal IPN registration response did not contain " "a valid IPN ID.",
             )
 
         return data

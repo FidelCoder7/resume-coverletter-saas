@@ -767,6 +767,7 @@ def test_pesapal_ipn_post_propagates_invalid_callback():
         },
     )
 
+
 def test_pesapal_ipn_post_processes_notification():
     """
     A PesaPal POST IPN notification should be delegated to the
@@ -878,7 +879,6 @@ def test_pesapal_ipn_post_duplicate_notification_is_delegated():
         provider=provider,
         payload=payload,
     )
-
 
 
 def test_pesapal_ipn_get_defaults_notification_type():
