@@ -1,4 +1,13 @@
-import { Activity, LayoutDashboard, ShieldCheck, Users, X } from 'lucide-react'
+import {
+  Activity,
+  Bot,
+  CreditCard,
+  LayoutDashboard,
+  ShieldCheck,
+  Users,
+  X,
+} from 'lucide-react'
+
 import { NavLink } from 'react-router-dom'
 
 import { appConfig } from '@/app/config'
@@ -15,6 +24,21 @@ const navigationItems = [
     label: 'Users',
     to: '/admin/users',
     icon: Users,
+  },
+  {
+    label: 'Subscriptions',
+    to: '/admin/analytics/subscriptions',
+    icon: CreditCard,
+  },
+  {
+    label: 'Payments',
+    to: '/admin/analytics/payments',
+    icon: CreditCard,
+  },
+  {
+    label: 'AI Analytics',
+    to: '/admin/analytics/ai',
+    icon: Bot,
   },
   {
     label: 'Audit Logs',

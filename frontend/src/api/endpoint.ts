@@ -116,5 +116,8 @@ export const API_ENDPOINTS = {
       `/api/admin/admins/${adminId}/audit-logs`,
     METRICS: '/api/admin/metrics',
     METRICS_TIMESERIES: '/api/admin/metrics/timeseries',
+    ANALYTICS_SUBSCRIPTIONS: '/api/admin/analytics/subscriptions',
+    ANALYTICS_PAYMENTS: '/api/admin/analytics/payments',
+    ANALYTICS_AI: '/api/admin/analytics/ai',
   } as const,
 } as const

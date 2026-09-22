@@ -153,3 +153,68 @@ export interface AdminDashboardTimeSeriesResponse {
 export interface AdminDashboardTimeSeriesParams {
   days?: number
 }
+
+export interface AdminAnalyticsDaysParams {
+  days?: number
+}
+
+export interface AdminSubscriptionAnalyticsResponse {
+  total_users: number
+  free_users: number
+  pro_users: number
+  active_subscriptions: number
+}
+
+export interface AdminPaymentAnalyticsTimeSeriesPoint {
+  date: string
+  count: number
+}
+
+export interface AdminPaymentRevenueTimeSeriesPoint {
+  date: string
+  amount: string
+}
+
+export interface AdminPaymentAnalyticsResponse {
+  days: number
+  total_transactions: number
+  completed_transactions: number
+  pending_transactions: number
+  failed_transactions: number
+  cancelled_transactions: number
+  expired_transactions: number
+  total_revenue_by_currency: Record<string, string>
+  transactions_by_plan: Record<string, number>
+  transactions_by_type: Record<string, number>
+  transactions_by_provider: Record<string, number>
+  transactions_by_payment_method: Record<string, number>
+  transaction_activity: AdminPaymentAnalyticsTimeSeriesPoint[]
+  revenue_activity: Record<string, AdminPaymentRevenueTimeSeriesPoint[]>
+}
+
+export interface AdminAIAnalyticsTimeSeriesPoint {
+  date: string
+  count: number
+}
+
+export interface AdminAICostTimeSeriesPoint {
+  date: string
+  amount: string
+}
+
+export interface AdminAIAnalyticsResponse {
+  days: number
+  total_requests: number
+  successful_requests: number
+  failed_requests: number
+  cancelled_requests: number
+  total_tokens: number
+  estimated_cost: string
+  average_latency_ms: number | null
+  requests_by_feature: Record<string, number>
+  requests_by_status: Record<string, number>
+  tokens_by_feature: Record<string, number>
+  request_activity: AdminAIAnalyticsTimeSeriesPoint[]
+  token_activity: AdminAIAnalyticsTimeSeriesPoint[]
+  cost_activity: AdminAICostTimeSeriesPoint[]
+}

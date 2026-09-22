@@ -3,16 +3,20 @@ import { API_ENDPOINTS } from '@/api/endpoint'
 
 import type {
   AdminAccessResponse,
+  AdminAIAnalyticsResponse,
+  AdminAnalyticsDaysParams,
+  AdminAuditLog,
+  AdminAuditLogListParams,
+  AdminAuditLogListResponse,
   AdminDashboardMetricsResponse,
   AdminDashboardTimeSeriesParams,
   AdminDashboardTimeSeriesResponse,
+  AdminPaymentAnalyticsResponse,
+  AdminSubscriptionAnalyticsResponse,
   AdminUserActionRequest,
   AdminUserDetail,
   AdminUserListParams,
   AdminUserListResponse,
-  AdminAuditLog,
-  AdminAuditLogListParams,
-  AdminAuditLogListResponse,
 } from '@/features/admin/types'
 
 export const adminApi = {
@@ -82,6 +86,41 @@ export const adminApi = {
   ): Promise<AdminDashboardTimeSeriesResponse> => {
     const response = await apiClient.get<AdminDashboardTimeSeriesResponse>(
       API_ENDPOINTS.ADMIN.METRICS_TIMESERIES,
+      {
+        params,
+      },
+    )
+
+    return response.data
+  },
+
+  getSubscriptionAnalytics:
+    async (): Promise<AdminSubscriptionAnalyticsResponse> => {
+      const response = await apiClient.get<AdminSubscriptionAnalyticsResponse>(
+        API_ENDPOINTS.ADMIN.ANALYTICS_SUBSCRIPTIONS,
+      )
+
+      return response.data
+    },
+
+  getPaymentAnalytics: async (
+    params?: AdminAnalyticsDaysParams,
+  ): Promise<AdminPaymentAnalyticsResponse> => {
+    const response = await apiClient.get<AdminPaymentAnalyticsResponse>(
+      API_ENDPOINTS.ADMIN.ANALYTICS_PAYMENTS,
+      {
+        params,
+      },
+    )
+
+    return response.data
+  },
+
+  getAIAnalytics: async (
+    params?: AdminAnalyticsDaysParams,
+  ): Promise<AdminAIAnalyticsResponse> => {
+    const response = await apiClient.get<AdminAIAnalyticsResponse>(
+      API_ENDPOINTS.ADMIN.ANALYTICS_AI,
       {
         params,
       },

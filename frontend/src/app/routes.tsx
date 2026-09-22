@@ -38,6 +38,9 @@ import AdminDashboard from '@/pages/admin/AdminDashboard'
 import AdminUsers from '@/pages/admin/AdminUsers'
 import AdminUserDetails from '@/pages/admin/AdminUserDetails'
 import AdminAuditLogs from '@/pages/admin/AdminAuditLogs'
+import AdminPaymentAnalytics from '@/pages/admin/AdminPaymentAnalytics'
+import AdminSubscriptionAnalytics from '@/pages/admin/AdminSubscriptionAnalytics'
+import AdminAIAnalytics from '@/pages/admin/AdminAIAnalytics'
 
 export const router = createBrowserRouter([
   {
@@ -287,6 +290,27 @@ export const router = createBrowserRouter([
               title: 'User Details',
             },
             element: <AdminUserDetails />,
+          },
+          {
+            path: 'admin/analytics/subscriptions',
+            handle: {
+              title: 'Subscription Analytics',
+            },
+            element: <AdminSubscriptionAnalytics />,
+          },
+          {
+            path: 'admin/analytics/payments',
+            handle: {
+              title: 'Payment Analytics',
+            },
+            element: <AdminPaymentAnalytics />,
+          },
+          {
+            path: 'admin/analytics/ai',
+            handle: {
+              title: 'AI Usage Analytics',
+            },
+            element: <AdminAIAnalytics />,
           },
           {
             path: 'admin/audit-logs',
