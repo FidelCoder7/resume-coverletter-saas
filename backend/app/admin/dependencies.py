@@ -3,6 +3,7 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from app.admin.analytics_service import AdminAnalyticsService
 from app.admin.dashboard_service import AdminDashboardService
 from app.admin.exceptions import AdminAccessDenied
 from app.admin.repository import (
@@ -90,4 +91,18 @@ def get_admin_dashboard_service(
         payment_repository=payment_repository,
         ai_usage_repository=ai_usage_repository,
         content_repository=content_repository,
+    )
+
+
+def get_admin_analytics_service(
+    db: Session = Depends(get_db),
+) -> AdminAnalyticsService:
+    """
+    Provide the administrative analytics service.
+    """
+
+    return AdminAnalyticsService(
+        user_repository=AdminUserRepository(db),
+        payment_repository=PaymentTransactionRepository(db),
+        ai_usage_repository=AIUsageRepository(db),
     )
