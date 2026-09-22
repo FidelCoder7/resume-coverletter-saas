@@ -511,3 +511,293 @@ class AIUsageRepository:
         )
 
         return float(value) if value is not None else None
+
+    def count_by_period(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> int:
+        """
+        Return the number of AI requests created within a period.
+        """
+
+        statement = select(
+            func.count(AIUsage.id),
+        ).where(
+            AIUsage.created_at >= start_date,
+            AIUsage.created_at < end_date,
+        )
+
+        return self.db.scalar(statement) or 0
+
+    def count_by_status_and_period(
+        self,
+        *,
+        status: AIRequestStatus,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> int:
+        """
+        Return the number of AI requests with a given status
+        within a period.
+        """
+
+        statement = select(
+            func.count(AIUsage.id),
+        ).where(
+            AIUsage.status == status,
+            AIUsage.created_at >= start_date,
+            AIUsage.created_at < end_date,
+        )
+
+        return self.db.scalar(statement) or 0
+
+    def sum_total_tokens_by_period(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> int:
+        """
+        Return total AI tokens consumed within a period.
+        """
+
+        statement = select(
+            func.coalesce(
+                func.sum(AIUsage.total_tokens),
+                0,
+            ),
+        ).where(
+            AIUsage.created_at >= start_date,
+            AIUsage.created_at < end_date,
+        )
+
+        return self.db.scalar(statement) or 0
+
+    def sum_estimated_cost_by_period(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> Decimal:
+        """
+        Return total estimated AI cost within a period.
+        """
+
+        statement = select(
+            func.coalesce(
+                func.sum(AIUsage.estimated_cost),
+                0,
+            ),
+        ).where(
+            AIUsage.created_at >= start_date,
+            AIUsage.created_at < end_date,
+        )
+
+        value = self.db.scalar(statement)
+
+        return Decimal(str(value or 0))
+
+    def average_latency_by_period(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> float | None:
+        """
+        Return average AI request latency within a period.
+        """
+
+        statement = select(
+            func.avg(AIUsage.latency_ms),
+        ).where(
+            AIUsage.created_at >= start_date,
+            AIUsage.created_at < end_date,
+        )
+
+        value = self.db.scalar(statement)
+
+        return float(value) if value is not None else None
+
+    def requests_grouped_by_feature_and_period(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> dict[AIFeature, int]:
+        """
+        Return AI request counts grouped by feature within a period.
+        """
+
+        statement = (
+            select(
+                AIUsage.feature,
+                func.count(AIUsage.id),
+            )
+            .where(
+                AIUsage.created_at >= start_date,
+                AIUsage.created_at < end_date,
+            )
+            .group_by(
+                AIUsage.feature,
+            )
+        )
+
+        return {feature: count for feature, count in self.db.execute(statement).all()}
+
+    def requests_grouped_by_status(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> dict[AIRequestStatus, int]:
+        """
+        Return AI request counts grouped by status within a period.
+        """
+
+        statement = (
+            select(
+                AIUsage.status,
+                func.count(AIUsage.id),
+            )
+            .where(
+                AIUsage.created_at >= start_date,
+                AIUsage.created_at < end_date,
+            )
+            .group_by(
+                AIUsage.status,
+            )
+        )
+
+        return {status: count for status, count in self.db.execute(statement).all()}
+
+    def tokens_grouped_by_feature_and_period(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> dict[AIFeature, int]:
+        """
+        Return token usage grouped by AI feature within a period.
+        """
+
+        statement = (
+            select(
+                AIUsage.feature,
+                func.coalesce(
+                    func.sum(AIUsage.total_tokens),
+                    0,
+                ),
+            )
+            .where(
+                AIUsage.created_at >= start_date,
+                AIUsage.created_at < end_date,
+            )
+            .group_by(
+                AIUsage.feature,
+            )
+        )
+
+        return {
+            feature: total or 0 for feature, total in self.db.execute(statement).all()
+        }
+
+    def count_by_day(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> list[tuple[datetime.date, int]]:
+        """
+        Return AI request counts grouped by UTC calendar day.
+        """
+
+        statement = (
+            select(
+                func.date(AIUsage.created_at).label("date"),
+                func.count(AIUsage.id).label("count"),
+            )
+            .where(
+                AIUsage.created_at >= start_date,
+                AIUsage.created_at < end_date,
+            )
+            .group_by(
+                func.date(AIUsage.created_at),
+            )
+            .order_by(
+                func.date(AIUsage.created_at),
+            )
+        )
+
+        return [(row.date, row.count) for row in self.db.execute(statement).all()]
+
+    def sum_tokens_by_day(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> list[tuple[datetime.date, int]]:
+        """
+        Return AI token usage grouped by UTC calendar day.
+        """
+
+        statement = (
+            select(
+                func.date(AIUsage.created_at).label("date"),
+                func.coalesce(
+                    func.sum(AIUsage.total_tokens),
+                    0,
+                ).label("tokens"),
+            )
+            .where(
+                AIUsage.created_at >= start_date,
+                AIUsage.created_at < end_date,
+            )
+            .group_by(
+                func.date(AIUsage.created_at),
+            )
+            .order_by(
+                func.date(AIUsage.created_at),
+            )
+        )
+
+        return [(row.date, row.tokens) for row in self.db.execute(statement).all()]
+
+    def sum_cost_by_day(
+        self,
+        *,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> list[tuple[datetime.date, Decimal]]:
+        """
+        Return estimated AI cost grouped by UTC calendar day.
+        """
+
+        statement = (
+            select(
+                func.date(AIUsage.created_at).label("date"),
+                func.coalesce(
+                    func.sum(AIUsage.estimated_cost),
+                    0,
+                ).label("cost"),
+            )
+            .where(
+                AIUsage.created_at >= start_date,
+                AIUsage.created_at < end_date,
+            )
+            .group_by(
+                func.date(AIUsage.created_at),
+            )
+            .order_by(
+                func.date(AIUsage.created_at),
+            )
+        )
+
+        return [
+            (
+                row.date,
+                Decimal(str(row.cost or 0)),
+            )
+            for row in self.db.execute(statement).all()
+        ]

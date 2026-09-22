@@ -108,6 +108,7 @@ def _process_pesapal_ipn(
         "status": 200,
     }
 
+
 @router.get(
     "/pesapal/ipn",
     status_code=status.HTTP_200_OK,

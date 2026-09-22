@@ -32,6 +32,15 @@ import BillingUsageDashboard from '@/pages/billing/UsageDashboard'
 import PaymentDetails from '@/pages/billing/PaymentDetails'
 import PaymentHistory from '@/pages/billing/PaymentHistory'
 import Upgrade from '@/pages/billing/Upgrade'
+import AdminRoute from '@/features/admin/components/AdminRoute'
+import AdminLayout from '@/features/admin/components/AdminLayout'
+import AdminDashboard from '@/pages/admin/AdminDashboard'
+import AdminUsers from '@/pages/admin/AdminUsers'
+import AdminUserDetails from '@/pages/admin/AdminUserDetails'
+import AdminAuditLogs from '@/pages/admin/AdminAuditLogs'
+import AdminPaymentAnalytics from '@/pages/admin/AdminPaymentAnalytics'
+import AdminSubscriptionAnalytics from '@/pages/admin/AdminSubscriptionAnalytics'
+import AdminAIAnalytics from '@/pages/admin/AdminAIAnalytics'
 
 export const router = createBrowserRouter([
   {
@@ -253,6 +262,64 @@ export const router = createBrowserRouter([
             description="Application and account settings will be available here."
           />
         ),
+      },
+      {
+        element: (
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        ),
+        children: [
+          {
+            path: 'admin',
+            handle: {
+              title: 'Admin Dashboard',
+            },
+            element: <AdminDashboard />,
+          },
+          {
+            path: 'admin/users',
+            handle: {
+              title: 'User Management',
+            },
+            element: <AdminUsers />,
+          },
+          {
+            path: 'admin/users/:userId',
+            handle: {
+              title: 'User Details',
+            },
+            element: <AdminUserDetails />,
+          },
+          {
+            path: 'admin/analytics/subscriptions',
+            handle: {
+              title: 'Subscription Analytics',
+            },
+            element: <AdminSubscriptionAnalytics />,
+          },
+          {
+            path: 'admin/analytics/payments',
+            handle: {
+              title: 'Payment Analytics',
+            },
+            element: <AdminPaymentAnalytics />,
+          },
+          {
+            path: 'admin/analytics/ai',
+            handle: {
+              title: 'AI Usage Analytics',
+            },
+            element: <AdminAIAnalytics />,
+          },
+          {
+            path: 'admin/audit-logs',
+            handle: {
+              title: 'Audit Logs',
+            },
+            element: <AdminAuditLogs />,
+          },
+        ],
       },
     ],
   },

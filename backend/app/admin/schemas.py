@@ -7,6 +7,11 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 from app.common.constants import (
     AccountStatus,
     AdminAuditAction,
+    AIFeature,
+    AIRequestStatus,
+    BillingTransactionType,
+    PaymentMethod,
+    PaymentProvider,
     SubscriptionPlan,
     UserRole,
 )
@@ -177,7 +182,7 @@ class AdminAuditLogListQuery(BaseModel):
             and self.created_after > self.created_before
         ):
             raise ValueError(
-                "created_after must be earlier than or equal to " "created_before.",
+                "created_after must be earlier than or equal to created_before.",
             )
 
         return self
@@ -304,3 +309,119 @@ class AdminDashboardTimeSeriesQuery(BaseModel):
         ge=7,
         le=90,
     )
+
+
+class AdminAnalyticsDaysQuery(BaseModel):
+    """
+    Query parameters shared by administrative analytics endpoints.
+    """
+
+    days: int = Field(
+        default=30,
+        ge=7,
+        le=90,
+    )
+
+
+class AdminSubscriptionAnalyticsResponse(BaseModel):
+    """
+    Current platform subscription distribution.
+
+    Historical subscription transitions are not represented because
+    the current data model stores only the user's current plan.
+    """
+
+    total_users: int
+    free_users: int
+    pro_users: int
+    active_subscriptions: int
+
+
+class AdminPaymentAnalyticsTimeSeriesPoint(BaseModel):
+    """
+    Daily payment transaction count.
+    """
+
+    date: date
+    count: int
+
+
+class AdminPaymentRevenueTimeSeriesPoint(BaseModel):
+    """
+    Daily payment revenue for one currency.
+    """
+
+    date: date
+    amount: Decimal
+
+
+class AdminPaymentAnalyticsResponse(BaseModel):
+    """
+    Platform-wide payment analytics for a selected period.
+    """
+
+    days: int
+
+    total_transactions: int
+    completed_transactions: int
+    pending_transactions: int
+    failed_transactions: int
+    cancelled_transactions: int
+    expired_transactions: int
+
+    total_revenue_by_currency: dict[str, Decimal]
+
+    transactions_by_plan: dict[SubscriptionPlan, int]
+    transactions_by_type: dict[BillingTransactionType, int]
+    transactions_by_provider: dict[PaymentProvider, int]
+    transactions_by_payment_method: dict[PaymentMethod, int]
+
+    transaction_activity: list[AdminPaymentAnalyticsTimeSeriesPoint]
+
+    revenue_activity: dict[
+        str,
+        list[AdminPaymentRevenueTimeSeriesPoint],
+    ]
+
+
+class AdminAIAnalyticsTimeSeriesPoint(BaseModel):
+    """
+    Daily AI request/token count.
+    """
+
+    date: date
+    count: int
+
+
+class AdminAICostTimeSeriesPoint(BaseModel):
+    """
+    Daily AI estimated cost.
+    """
+
+    date: date
+    amount: Decimal
+
+
+class AdminAIAnalyticsResponse(BaseModel):
+    """
+    Platform-wide AI analytics for a selected period.
+    """
+
+    days: int
+
+    total_requests: int
+    successful_requests: int
+    failed_requests: int
+    cancelled_requests: int
+
+    total_tokens: int
+    estimated_cost: Decimal
+    average_latency_ms: float | None
+
+    requests_by_feature: dict[AIFeature, int]
+    requests_by_status: dict[AIRequestStatus, int]
+    tokens_by_feature: dict[AIFeature, int]
+
+    request_activity: list[AdminAIAnalyticsTimeSeriesPoint]
+    token_activity: list[AdminAIAnalyticsTimeSeriesPoint]
+    cost_activity: list[AdminAICostTimeSeriesPoint]

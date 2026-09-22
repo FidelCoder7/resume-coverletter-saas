@@ -3,8 +3,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.admin.analytics_service import AdminAnalyticsService
 from app.admin.dashboard_service import AdminDashboardService
 from app.admin.dependencies import (
+    get_admin_analytics_service,
     get_admin_audit_log_service,
     get_admin_dashboard_service,
     require_admin,
@@ -14,12 +16,16 @@ from app.admin.repository import (
     AdminUserRepository,
 )
 from app.admin.schemas import (
+    AdminAIAnalyticsResponse,
+    AdminAnalyticsDaysQuery,
     AdminAuditLogListQuery,
     AdminAuditLogListResponse,
     AdminAuditLogResponse,
     AdminDashboardMetricsResponse,
     AdminDashboardTimeSeriesQuery,
     AdminDashboardTimeSeriesResponse,
+    AdminPaymentAnalyticsResponse,
+    AdminSubscriptionAnalyticsResponse,
     AdminUserActionRequest,
     AdminUserDetailResponse,
     AdminUserListQuery,
@@ -270,5 +276,62 @@ def get_admin_dashboard_time_series(
     """
 
     return service.get_time_series(
+        days=query.days,
+    )
+
+
+@router.get(
+    "/analytics/subscriptions",
+    response_model=AdminSubscriptionAnalyticsResponse,
+)
+def get_subscription_analytics(
+    _admin: User = Depends(require_admin),
+    service: AdminAnalyticsService = Depends(
+        get_admin_analytics_service,
+    ),
+) -> AdminSubscriptionAnalyticsResponse:
+    """
+    Return current platform subscription analytics.
+    """
+
+    return service.get_subscription_analytics()
+
+
+@router.get(
+    "/analytics/payments",
+    response_model=AdminPaymentAnalyticsResponse,
+)
+def get_payment_analytics(
+    query: AdminAnalyticsDaysQuery = Depends(),
+    _admin: User = Depends(require_admin),
+    service: AdminAnalyticsService = Depends(
+        get_admin_analytics_service,
+    ),
+) -> AdminPaymentAnalyticsResponse:
+    """
+    Return platform payment analytics for the requested period.
+    """
+
+    return service.get_payment_analytics(
+        days=query.days,
+    )
+
+
+@router.get(
+    "/analytics/ai",
+    response_model=AdminAIAnalyticsResponse,
+)
+def get_ai_analytics(
+    query: AdminAnalyticsDaysQuery = Depends(),
+    _admin: User = Depends(require_admin),
+    service: AdminAnalyticsService = Depends(
+        get_admin_analytics_service,
+    ),
+) -> AdminAIAnalyticsResponse:
+    """
+    Return platform AI analytics for the requested period.
+    """
+
+    return service.get_ai_analytics(
         days=query.days,
     )

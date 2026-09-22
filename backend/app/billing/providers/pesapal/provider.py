@@ -104,16 +104,14 @@ class PesaPalProvider(PaymentProvider):
 
             if error:
                 raise PaymentProviderResponseError(
-                    "PesaPal order submission failed. "
-                    f"error={str(error)!r}.",
+                    "PesaPal order submission failed. " f"error={str(error)!r}.",
                 )
 
             message = response.get("message")
 
             if message:
                 raise PaymentProviderResponseError(
-                    "PesaPal order submission failed. "
-                    f"message={str(message)!r}.",
+                    "PesaPal order submission failed. " f"message={str(message)!r}.",
                 )
 
             status = response.get("status")
